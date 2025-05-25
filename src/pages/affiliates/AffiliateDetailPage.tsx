@@ -231,37 +231,51 @@ const AffiliateDetailPage: React.FC = () => {
     return sortConfig.direction === 'ascending' ? <ChevronUp size={14} /> : <ChevronDown size={14} />;
   };
 
+  // Função para renderizar cards em telas pequenas
+  const renderMobileCard = (item: any, idx: number) => (
+    <div key={idx} className="bg-cinza-claro p-4 rounded-md mb-3 shadow-sm md:hidden">
+      <div className="flex justify-between items-center mb-2">
+        <h4 className="font-semibold text-white">{item.name}</h4>
+        <span className="text-xs bg-gray-700 px-2 py-1 rounded-full">Nível {item.level}</span>
+      </div>
+      <div className="text-sm space-y-1">
+        <p><span className="text-gray-400">ID:</span> {item.id}</p>
+        <p><span className="text-gray-400">Valor Depositado:</span> R$ {item.deposited.toFixed(2)}</p>
+        <p><span className="text-gray-400">Comissão Gerada:</span> R$ {item.commissionGenerated.toFixed(2)}</p>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="bg-cinza-escuro p-1">
-      <div className="flex items-center justify-between mb-6">
+    <div className="bg-cinza-escuro p-1 sm:p-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
             <Link to="/affiliates" className="flex items-center text-sm text-azul-ciano hover:text-opacity-80 mb-2">
                 <ArrowLeft size={18} className="mr-1" />
                 Voltar para Lista de Afiliados
             </Link>
-            <h1 className="text-3xl font-bold text-branco font-sora">Detalhes do Afiliado</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-branco font-sora">Detalhes do Afiliado</h1>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 mt-3 sm:mt-0">
           <Link 
             to={`/affiliates/edit/${affiliate.id}`}
-            className="px-4 py-2 text-sm font-bold text-branco bg-azul-ciano rounded-md hover:bg-opacity-80 flex items-center"
+            className="px-3 py-2 sm:px-4 sm:py-2 text-sm font-bold text-branco bg-azul-ciano rounded-md hover:bg-opacity-80 flex items-center"
           >
             <Edit2 size={16} className="mr-2" /> Editar Afiliado
           </Link>
-          {/* TODO: Implement Change Status Modal/Functionality here if needed directly */}
         </div>
       </div>
 
       {/* Affiliate Quick Info Bar */}
-      <div className="bg-cinza-claro p-6 rounded-lg shadow-lg mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
+      <div className="bg-cinza-claro p-4 sm:p-6 rounded-lg shadow-lg mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
             <div>
                 <p className="text-sm text-gray-400">Nome</p>
-                <p className="text-xl font-semibold text-branco">{affiliate.name}</p>
+                <p className="text-lg sm:text-xl font-semibold text-branco">{affiliate.name}</p>
             </div>
             <div>
                 <p className="text-sm text-gray-400">ID do Afiliado</p>
-                <p className="text-lg font-mono text-gray-300">{affiliate.id}</p>
+                <p className="text-base sm:text-lg font-mono text-gray-300">{affiliate.id}</p>
             </div>
             <div>
                 <p className="text-sm text-gray-400">Status</p>
@@ -271,14 +285,14 @@ const AffiliateDetailPage: React.FC = () => {
             </div>
             <div>
                 <p className="text-sm text-gray-400">Categoria/Level</p>
-                <p className="text-lg text-branco">{affiliate.category}</p>
+                <p className="text-base sm:text-lg text-branco">{affiliate.category}</p>
             </div>
         </div>
       </div>
 
-      {/* Tabs Navigation */}
-      <div className="mb-6 border-b border-gray-700">
-        <nav className="-mb-px flex space-x-4" aria-label="Tabs">
+      {/* Tabs Navigation - Scrollable em telas pequenas */}
+      <div className="mb-6 border-b border-gray-700 overflow-x-auto">
+        <nav className="-mb-px flex space-x-2 sm:space-x-4 min-w-max" aria-label="Tabs">
           {[
             { key: 'details', label: 'Dados Cadastrais', icon: FileText },
             { key: 'network', label: 'Rede', icon: Users },
@@ -289,19 +303,19 @@ const AffiliateDetailPage: React.FC = () => {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key as any)}
-              className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm flex items-center 
+              className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-xs sm:text-sm flex items-center 
                 ${activeTab === tab.key 
                   ? 'border-azul-ciano text-azul-ciano'
                   : 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-500'}`}
             >
-              <tab.icon size={16} className="mr-2"/> {tab.label}
+              <tab.icon size={16} className="mr-1 sm:mr-2"/> {tab.label}
             </button>
           ))}
         </nav>
       </div>
 
       {/* Tab Content */}
-      <div className="bg-cinza-claro p-6 rounded-lg shadow-lg min-h-[300px]">
+      <div className="bg-cinza-claro p-4 sm:p-6 rounded-lg shadow-lg min-h-[300px]">
         {activeTab === 'details' && (
           <div className="space-y-4">
             <h2 className="text-xl font-semibold text-branco font-sora mb-3">Informações Pessoais</h2>
@@ -346,44 +360,139 @@ const AffiliateDetailPage: React.FC = () => {
                         </div>
                         <div className="flex justify-between">
                             <span className="text-gray-400 text-sm">Comissão Total:</span>
-                            <span className="text-green-400 font-semibold">R$ {allLevelsTotals.totalCommission.toFixed(2)}</span>
+                            <span className="text-white font-semibold">R$ {allLevelsTotals.totalCommission.toFixed(2)}</span>
                         </div>
                     </div>
                 </div>
-
-                {/* Individual Level Frames */}
-                {Object.entries(affiliateDownline.levels).map(([level, count]) => (
-                    <div key={level} className="bg-cinza-escuro rounded-md overflow-hidden shadow-lg">
-                        <div className="bg-azul-ciano py-2 px-3 text-center">
-                            <h4 className="text-white font-semibold text-lg">{level}</h4>
+                
+                {/* Nível 1 Frame */}
+                <div className="bg-cinza-escuro rounded-md overflow-hidden shadow-lg">
+                    <div className="bg-azul-ciano py-2 px-3 text-center">
+                        <h4 className="text-white font-semibold text-lg">Nível 1</h4>
+                    </div>
+                    <div className="p-4 space-y-2">
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Indicações Totais:</span>
+                            <span className="text-white font-semibold">{affiliateDownline.levels['Nível 1'] || 0}</span>
                         </div>
-                        <div className="p-4 space-y-2">
-                            <div className="flex justify-between">
-                                <span className="text-gray-400 text-sm">Indicações Totais:</span>
-                                <span className="text-white font-semibold">{count as number}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-400 text-sm">Indicações Validadas:</span>
-                                <span className="text-white font-semibold">{affiliateDownline.validatedCounts[level] || 0}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-400 text-sm">Valor Depositado:</span>
-                                <span className="text-white font-semibold">R$ {(affiliateDownline.depositedValues[level] || 0).toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-400 text-sm">Comissão Total:</span>
-                                <span className="text-green-400 font-semibold">R$ {(affiliateDownline.commissions[level] || 0).toFixed(2)}</span>
-                            </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Indicações Validadas:</span>
+                            <span className="text-white font-semibold">{affiliateDownline.validatedCounts['Nível 1'] || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Valor Depositado:</span>
+                            <span className="text-white font-semibold">R$ {(affiliateDownline.depositedValues['Nível 1'] || 0).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Comissão Total:</span>
+                            <span className="text-white font-semibold">R$ {(affiliateDownline.commissions['Nível 1'] || 0).toFixed(2)}</span>
                         </div>
                     </div>
-                ))}
-                {Object.keys(affiliateDownline.levels).length === 0 && <p className="text-gray-400">Nenhum indicado na rede.</p>}
+                </div>
+                
+                {/* Nível 2 Frame */}
+                <div className="bg-cinza-escuro rounded-md overflow-hidden shadow-lg">
+                    <div className="bg-azul-ciano py-2 px-3 text-center">
+                        <h4 className="text-white font-semibold text-lg">Nível 2</h4>
+                    </div>
+                    <div className="p-4 space-y-2">
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Indicações Totais:</span>
+                            <span className="text-white font-semibold">{affiliateDownline.levels['Nível 2'] || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Indicações Validadas:</span>
+                            <span className="text-white font-semibold">{affiliateDownline.validatedCounts['Nível 2'] || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Valor Depositado:</span>
+                            <span className="text-white font-semibold">R$ {(affiliateDownline.depositedValues['Nível 2'] || 0).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Comissão Total:</span>
+                            <span className="text-white font-semibold">R$ {(affiliateDownline.commissions['Nível 2'] || 0).toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Nível 3 Frame */}
+                <div className="bg-cinza-escuro rounded-md overflow-hidden shadow-lg">
+                    <div className="bg-azul-ciano py-2 px-3 text-center">
+                        <h4 className="text-white font-semibold text-lg">Nível 3</h4>
+                    </div>
+                    <div className="p-4 space-y-2">
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Indicações Totais:</span>
+                            <span className="text-white font-semibold">{affiliateDownline.levels['Nível 3'] || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Indicações Validadas:</span>
+                            <span className="text-white font-semibold">{affiliateDownline.validatedCounts['Nível 3'] || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Valor Depositado:</span>
+                            <span className="text-white font-semibold">R$ {(affiliateDownline.depositedValues['Nível 3'] || 0).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Comissão Total:</span>
+                            <span className="text-white font-semibold">R$ {(affiliateDownline.commissions['Nível 3'] || 0).toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Nível 4 Frame */}
+                <div className="bg-cinza-escuro rounded-md overflow-hidden shadow-lg">
+                    <div className="bg-azul-ciano py-2 px-3 text-center">
+                        <h4 className="text-white font-semibold text-lg">Nível 4</h4>
+                    </div>
+                    <div className="p-4 space-y-2">
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Indicações Totais:</span>
+                            <span className="text-white font-semibold">{affiliateDownline.levels['Nível 4'] || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Indicações Validadas:</span>
+                            <span className="text-white font-semibold">{affiliateDownline.validatedCounts['Nível 4'] || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Valor Depositado:</span>
+                            <span className="text-white font-semibold">R$ {(affiliateDownline.depositedValues['Nível 4'] || 0).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Comissão Total:</span>
+                            <span className="text-white font-semibold">R$ {(affiliateDownline.commissions['Nível 4'] || 0).toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Nível 5 Frame */}
+                <div className="bg-cinza-escuro rounded-md overflow-hidden shadow-lg">
+                    <div className="bg-azul-ciano py-2 px-3 text-center">
+                        <h4 className="text-white font-semibold text-lg">Nível 5</h4>
+                    </div>
+                    <div className="p-4 space-y-2">
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Indicações Totais:</span>
+                            <span className="text-white font-semibold">{affiliateDownline.levels['Nível 5'] || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Indicações Validadas:</span>
+                            <span className="text-white font-semibold">{affiliateDownline.validatedCounts['Nível 5'] || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Valor Depositado:</span>
+                            <span className="text-white font-semibold">R$ {(affiliateDownline.depositedValues['Nível 5'] || 0).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Comissão Total:</span>
+                            <span className="text-white font-semibold">R$ {(affiliateDownline.commissions['Nível 5'] || 0).toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <h3 className="text-lg font-semibold text-branco mb-4">Detalhes da Downline:</h3>
             
-            {/* Filter and Pagination Controls */}
-            <div className="flex flex-wrap gap-4 mb-4 items-center justify-between">
+            <h3 className="text-lg font-semibold text-branco mb-4">Detalhes da Downline:</h3>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-3 sm:space-y-0">
                 <div className="flex items-center">
                     <label className="text-gray-400 mr-2 text-sm">Filtrar por Nível:</label>
                     <select 
@@ -414,8 +523,33 @@ const AffiliateDetailPage: React.FC = () => {
                 </div>
             </div>
             
-            {/* Downline Table */}
-            <div className="overflow-x-auto">
+            {/* Mobile Cards View */}
+            <div className="md:hidden space-y-2 mb-4">
+                {paginatedDetails.map((item, idx) => renderMobileCard(item, idx))}
+                {filteredDownlineDetails.length === 0 && 
+                    <div className="text-center py-4 text-gray-400">Nenhum afiliado encontrado.</div>
+                }
+                
+                {/* Mobile Totals */}
+                {filteredDownlineDetails.length > 0 && (
+                    <div className="bg-gray-800 p-3 rounded-md mt-4">
+                        <div className="font-semibold text-white mb-1">Total:</div>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                                <span className="text-gray-400">Valor Depositado:</span>
+                                <span className="text-white ml-1">R$ {totals.deposited.toFixed(2)}</span>
+                            </div>
+                            <div>
+                                <span className="text-gray-400">Comissão Gerada:</span>
+                                <span className="text-white ml-1">R$ {totals.commissionGenerated.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+            
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
                 <table className="min-w-full text-sm text-left text-branco">
                     <thead className="bg-gray-700 text-xs uppercase">
                         <tr>
@@ -436,12 +570,16 @@ const AffiliateDetailPage: React.FC = () => {
                             </th>
                             <th className="px-4 py-2 cursor-pointer" onClick={() => requestSort('deposited')}>
                                 <div className="flex items-center">
-                                    VALOR DEPOSITADO PELA REDE DESSE AFILIADO {getSortIndicator('deposited')}
+                                    <span className="hidden lg:inline">VALOR DEPOSITADO PELA REDE DESSE AFILIADO</span>
+                                    <span className="lg:hidden">VALOR DEPOSITADO</span>
+                                    {getSortIndicator('deposited')}
                                 </div>
                             </th>
                             <th className="px-4 py-2 cursor-pointer" onClick={() => requestSort('commissionGenerated')}>
                                 <div className="flex items-center">
-                                    COMISSÃO GERADA PELA REDE DESSE AFILIADO {getSortIndicator('commissionGenerated')}
+                                    <span className="hidden lg:inline">COMISSÃO GERADA PELA REDE DESSE AFILIADO</span>
+                                    <span className="lg:hidden">COMISSÃO GERADA</span>
+                                    {getSortIndicator('commissionGenerated')}
                                 </div>
                             </th>
                         </tr>
@@ -470,64 +608,71 @@ const AffiliateDetailPage: React.FC = () => {
                 </table>
             </div>
 
-            {/* Pagination Controls */}
+            {/* Pagination Controls - Responsivo */}
             {totalPages > 1 && (
-                <div className="flex justify-between items-center mt-4">
-                    <div className="text-sm text-gray-400">
+                <div className="flex flex-col sm:flex-row justify-between items-center mt-4 space-y-3 sm:space-y-0">
+                    <div className="text-xs sm:text-sm text-gray-400 order-2 sm:order-1">
                         Mostrando {(currentPage - 1) * itemsPerPage + 1} a {Math.min(currentPage * itemsPerPage, filteredDownlineDetails.length)} de {filteredDownlineDetails.length} resultados
                     </div>
-                    <div className="flex space-x-1">
+                    <div className="flex space-x-1 order-1 sm:order-2">
                         <button 
                             onClick={() => handlePageChange(1)} 
                             disabled={currentPage === 1}
-                            className={`px-3 py-1 rounded ${currentPage === 1 ? 'bg-gray-700 text-gray-500' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
+                            className={`px-2 sm:px-3 py-1 rounded text-sm ${currentPage === 1 ? 'bg-gray-700 text-gray-500' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
                         >
                             &laquo;
                         </button>
                         <button 
                             onClick={() => handlePageChange(currentPage - 1)} 
                             disabled={currentPage === 1}
-                            className={`px-3 py-1 rounded ${currentPage === 1 ? 'bg-gray-700 text-gray-500' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
+                            className={`px-2 sm:px-3 py-1 rounded text-sm ${currentPage === 1 ? 'bg-gray-700 text-gray-500' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
                         >
                             &lsaquo;
                         </button>
                         
-                        {/* Page numbers */}
-                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                            // Show pages around current page
-                            let pageNum;
-                            if (totalPages <= 5) {
-                                pageNum = i + 1;
-                            } else if (currentPage <= 3) {
-                                pageNum = i + 1;
-                            } else if (currentPage >= totalPages - 2) {
-                                pageNum = totalPages - 4 + i;
-                            } else {
-                                pageNum = currentPage - 2 + i;
-                            }
-                            
-                            return (
-                                <button 
-                                    key={pageNum}
-                                    onClick={() => handlePageChange(pageNum)} 
-                                    className={`px-3 py-1 rounded ${currentPage === pageNum ? 'bg-azul-ciano text-white' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
-                                >
-                                    {pageNum}
-                                </button>
-                            );
-                        })}
+                        {/* Page numbers - Esconde em telas muito pequenas */}
+                        <div className="hidden sm:flex space-x-1">
+                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                // Show pages around current page
+                                let pageNum;
+                                if (totalPages <= 5) {
+                                    pageNum = i + 1;
+                                } else if (currentPage <= 3) {
+                                    pageNum = i + 1;
+                                } else if (currentPage >= totalPages - 2) {
+                                    pageNum = totalPages - 4 + i;
+                                } else {
+                                    pageNum = currentPage - 2 + i;
+                                }
+                                
+                                return (
+                                    <button 
+                                        key={pageNum}
+                                        onClick={() => handlePageChange(pageNum)} 
+                                        className={`px-3 py-1 rounded text-sm ${currentPage === pageNum ? 'bg-azul-ciano text-white' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
+                                    >
+                                        {pageNum}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        
+                        {/* Página atual / total para telas pequenas */}
+                        <span className="px-3 py-1 bg-gray-700 rounded text-white text-sm sm:hidden">
+                            {currentPage}/{totalPages}
+                        </span>
                         
                         <button 
                             onClick={() => handlePageChange(currentPage + 1)} 
                             disabled={currentPage === totalPages}
-                            className={`px-3 py-1 rounded ${currentPage === totalPages ? 'bg-gray-700 text-gray-500' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
+                            className={`px-2 sm:px-3 py-1 rounded text-sm ${currentPage === totalPages ? 'bg-gray-700 text-gray-500' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
                         >
                             &rsaquo;
                         </button>
                         <button 
                             onClick={() => handlePageChange(totalPages)} 
                             disabled={currentPage === totalPages}
-                            className={`px-3 py-1 rounded ${currentPage === totalPages ? 'bg-gray-700 text-gray-500' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
+                            className={`px-2 sm:px-3 py-1 rounded text-sm ${currentPage === totalPages ? 'bg-gray-700 text-gray-500' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
                         >
                             &raquo;
                         </button>
