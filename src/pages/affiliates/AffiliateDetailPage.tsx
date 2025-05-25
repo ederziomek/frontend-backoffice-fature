@@ -13,6 +13,20 @@ const mockDownline = {
       'Nível 4': 45,
       'Nível 5': 22
     },
+    validatedCounts: {
+      'Nível 1': 4,
+      'Nível 2': 12,
+      'Nível 3': 25,
+      'Nível 4': 38,
+      'Nível 5': 18
+    },
+    depositedValues: {
+      'Nível 1': 17000.00,
+      'Nível 2': 11200.00,
+      'Nível 3': 9000.00,
+      'Nível 4': 4000.00,
+      'Nível 5': 1500.00
+    },
     commissions: {
       'Nível 1': 1250.00,
       'Nível 2': 850.00,
@@ -56,6 +70,8 @@ const mockDownline = {
   },
   'AF002': {
     levels: { 'Nível 1': 2 },
+    validatedCounts: { 'Nível 1': 1 },
+    depositedValues: { 'Nível 1': 1500.00 },
     commissions: { 'Nível 1': 75.00 },
     levelDetails: {
       'Nível 1': [
@@ -93,6 +109,8 @@ const AffiliateDetailPage: React.FC = () => {
     key: 'name',
     direction: 'ascending'
   });
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   useEffect(() => {
     if (affiliateId) {
@@ -117,9 +135,25 @@ const AffiliateDetailPage: React.FC = () => {
 
   const affiliateDownline = (mockDownline as any)[affiliate.id] || { 
     levels: {}, 
+    validatedCounts: {},
+    depositedValues: {},
     commissions: {},
     levelDetails: {} 
   };
+
+  // Calculate totals for all levels
+  const calculateAllLevelsTotals = () => {
+    const levels = Object.keys(affiliateDownline.levels);
+    
+    return {
+      totalCount: levels.reduce((sum, level) => sum + (affiliateDownline.levels[level] || 0), 0),
+      totalValidated: levels.reduce((sum, level) => sum + (affiliateDownline.validatedCounts[level] || 0), 0),
+      totalDeposited: levels.reduce((sum, level) => sum + (affiliateDownline.depositedValues[level] || 0), 0),
+      totalCommission: levels.reduce((sum, level) => sum + (affiliateDownline.commissions[level] || 0), 0)
+    };
+  };
+
+  const allLevelsTotals = calculateAllLevelsTotals();
 
   // Filter downline details based on selected level
   const getFilteredDownlineDetails = () => {
@@ -172,6 +206,24 @@ const AffiliateDetailPage: React.FC = () => {
 
   const filteredDownlineDetails = getFilteredDownlineDetails();
   const totals = calculateTotals(filteredDownlineDetails);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredDownlineDetails.length / itemsPerPage);
+  const paginatedDetails = filteredDownlineDetails.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Handle items per page change
+  const handleItemsPerPageChange = (items: number) => {
+    setItemsPerPage(items);
+    setCurrentPage(1); // Reset to first page when changing items per page
+  };
 
   // Get sort indicator
   const getSortIndicator = (key: string) => {
@@ -271,27 +323,67 @@ const AffiliateDetailPage: React.FC = () => {
         {activeTab === 'network' && (
           <div>
             <h2 className="text-xl font-semibold text-branco font-sora mb-4">Rede do Afiliado</h2>
-            <div className="mb-4">
-                <p><strong className="text-gray-400">Upline Direto:</strong> {affiliate.upline || 'AF000Mestre'}</p>
-            </div>
-            <h3 className="text-lg font-semibold text-branco mb-2">Contagem de Indicados por Nível:</h3>
-            <div className="flex flex-wrap gap-4 mb-6">
+            
+            <h3 className="text-lg font-semibold text-branco mb-4">Contagem de Indicados por Nível:</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+                {/* Todas Indicações Frame */}
+                <div className="bg-cinza-escuro rounded-md overflow-hidden shadow-lg">
+                    <div className="bg-azul-ciano py-2 px-3 text-center">
+                        <h4 className="text-white font-semibold text-lg">Todas Indicações</h4>
+                    </div>
+                    <div className="p-4 space-y-2">
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Indicações Totais:</span>
+                            <span className="text-white font-semibold">{allLevelsTotals.totalCount}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Indicações Validadas:</span>
+                            <span className="text-white font-semibold">{allLevelsTotals.totalValidated}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Valor Depositado:</span>
+                            <span className="text-white font-semibold">R$ {allLevelsTotals.totalDeposited.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-400 text-sm">Comissão Total:</span>
+                            <span className="text-green-400 font-semibold">R$ {allLevelsTotals.totalCommission.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Individual Level Frames */}
                 {Object.entries(affiliateDownline.levels).map(([level, count]) => (
-                    <div key={level} className="bg-cinza-escuro p-3 rounded-md text-center w-40">
-                        <p className="text-xs text-gray-400">{level}</p>
-                        <p className="text-2xl font-bold text-azul-ciano">{count as number}</p>
-                        <p className="text-xs text-gray-300 mt-1">Comissão Total:</p>
-                        <p className="text-sm font-semibold text-green-400">
-                            R$ {affiliateDownline.commissions[level]?.toFixed(2) || '0.00'}
-                        </p>
+                    <div key={level} className="bg-cinza-escuro rounded-md overflow-hidden shadow-lg">
+                        <div className="bg-azul-ciano py-2 px-3 text-center">
+                            <h4 className="text-white font-semibold text-lg">{level}</h4>
+                        </div>
+                        <div className="p-4 space-y-2">
+                            <div className="flex justify-between">
+                                <span className="text-gray-400 text-sm">Indicações Totais:</span>
+                                <span className="text-white font-semibold">{count as number}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-400 text-sm">Indicações Validadas:</span>
+                                <span className="text-white font-semibold">{affiliateDownline.validatedCounts[level] || 0}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-400 text-sm">Valor Depositado:</span>
+                                <span className="text-white font-semibold">R$ {(affiliateDownline.depositedValues[level] || 0).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-400 text-sm">Comissão Total:</span>
+                                <span className="text-green-400 font-semibold">R$ {(affiliateDownline.commissions[level] || 0).toFixed(2)}</span>
+                            </div>
+                        </div>
                     </div>
                 ))}
                 {Object.keys(affiliateDownline.levels).length === 0 && <p className="text-gray-400">Nenhum indicado na rede.</p>}
             </div>
-            <h3 className="text-lg font-semibold text-branco mb-2">Detalhes da Downline:</h3>
+
+            <h3 className="text-lg font-semibold text-branco mb-4">Detalhes da Downline:</h3>
             
-            {/* Filter Controls */}
-            <div className="flex flex-wrap gap-4 mb-4 items-center">
+            {/* Filter and Pagination Controls */}
+            <div className="flex flex-wrap gap-4 mb-4 items-center justify-between">
                 <div className="flex items-center">
                     <label className="text-gray-400 mr-2 text-sm">Filtrar por Nível:</label>
                     <select 
@@ -307,6 +399,19 @@ const AffiliateDetailPage: React.FC = () => {
                         <option value="Nível 5">Nível 5</option>
                     </select>
                 </div>
+                <div className="flex items-center">
+                    <label className="text-gray-400 mr-2 text-sm">Itens por página:</label>
+                    <select 
+                        className="bg-cinza-escuro text-branco border border-gray-600 rounded px-3 py-1 text-sm"
+                        value={itemsPerPage}
+                        onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
+                    >
+                        <option value={10}>10</option>
+                        <option value={25}>25</option>
+                        <option value={50}>50</option>
+                        <option value={100}>100</option>
+                    </select>
+                </div>
             </div>
             
             {/* Downline Table */}
@@ -316,47 +421,43 @@ const AffiliateDetailPage: React.FC = () => {
                         <tr>
                             <th className="px-4 py-2 cursor-pointer" onClick={() => requestSort('name')}>
                                 <div className="flex items-center">
-                                    Nome Afiliado {getSortIndicator('name')}
+                                    NOME AFILIADO {getSortIndicator('name')}
                                 </div>
                             </th>
                             <th className="px-4 py-2 cursor-pointer" onClick={() => requestSort('id')}>
                                 <div className="flex items-center">
-                                    ID Afiliado {getSortIndicator('id')}
+                                    ID AFILIADO {getSortIndicator('id')}
                                 </div>
                             </th>
                             <th className="px-4 py-2 cursor-pointer" onClick={() => requestSort('level')}>
                                 <div className="flex items-center">
-                                    Nível {getSortIndicator('level')}
+                                    NÍVEL {getSortIndicator('level')}
                                 </div>
                             </th>
                             <th className="px-4 py-2 cursor-pointer" onClick={() => requestSort('deposited')}>
                                 <div className="flex items-center">
-                                    Valor Depositado {getSortIndicator('deposited')}
+                                    VALOR DEPOSITADO PELA REDE DESSE AFILIADO {getSortIndicator('deposited')}
                                 </div>
                             </th>
                             <th className="px-4 py-2 cursor-pointer" onClick={() => requestSort('commissionGenerated')}>
                                 <div className="flex items-center">
-                                    Comissão Gerada {getSortIndicator('commissionGenerated')}
+                                    COMISSÃO GERADA PELA REDE DESSE AFILIADO {getSortIndicator('commissionGenerated')}
                                 </div>
                             </th>
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredDownlineDetails.map((item, idx) => (
+                        {paginatedDetails.map((item, idx) => (
                             <tr key={idx} className="border-b border-gray-700 hover:bg-cinza-escuro">
                                 <td className="px-4 py-2">{item.name}</td>
-                                <td className="px-4 py-2">{item.id}</td>
+                                <td className="px-4 py-2 font-mono">{item.id}</td>
                                 <td className="px-4 py-2">Nível {item.level}</td>
                                 <td className="px-4 py-2">R$ {item.deposited.toFixed(2)}</td>
                                 <td className="px-4 py-2">R$ {item.commissionGenerated.toFixed(2)}</td>
                             </tr>
                         ))}
                         {filteredDownlineDetails.length === 0 && 
-                            <tr>
-                                <td colSpan={5} className="text-center py-4 text-gray-400">
-                                    Nenhum afiliado encontrado para o filtro selecionado.
-                                </td>
-                            </tr>
+                            <tr><td colSpan={5} className="text-center py-4 text-gray-400">Nenhum afiliado encontrado.</td></tr>
                         }
                     </tbody>
                     <tfoot className="bg-gray-800 font-semibold">
@@ -368,13 +469,77 @@ const AffiliateDetailPage: React.FC = () => {
                     </tfoot>
                 </table>
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+                <div className="flex justify-between items-center mt-4">
+                    <div className="text-sm text-gray-400">
+                        Mostrando {(currentPage - 1) * itemsPerPage + 1} a {Math.min(currentPage * itemsPerPage, filteredDownlineDetails.length)} de {filteredDownlineDetails.length} resultados
+                    </div>
+                    <div className="flex space-x-1">
+                        <button 
+                            onClick={() => handlePageChange(1)} 
+                            disabled={currentPage === 1}
+                            className={`px-3 py-1 rounded ${currentPage === 1 ? 'bg-gray-700 text-gray-500' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
+                        >
+                            &laquo;
+                        </button>
+                        <button 
+                            onClick={() => handlePageChange(currentPage - 1)} 
+                            disabled={currentPage === 1}
+                            className={`px-3 py-1 rounded ${currentPage === 1 ? 'bg-gray-700 text-gray-500' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
+                        >
+                            &lsaquo;
+                        </button>
+                        
+                        {/* Page numbers */}
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                            // Show pages around current page
+                            let pageNum;
+                            if (totalPages <= 5) {
+                                pageNum = i + 1;
+                            } else if (currentPage <= 3) {
+                                pageNum = i + 1;
+                            } else if (currentPage >= totalPages - 2) {
+                                pageNum = totalPages - 4 + i;
+                            } else {
+                                pageNum = currentPage - 2 + i;
+                            }
+                            
+                            return (
+                                <button 
+                                    key={pageNum}
+                                    onClick={() => handlePageChange(pageNum)} 
+                                    className={`px-3 py-1 rounded ${currentPage === pageNum ? 'bg-azul-ciano text-white' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
+                                >
+                                    {pageNum}
+                                </button>
+                            );
+                        })}
+                        
+                        <button 
+                            onClick={() => handlePageChange(currentPage + 1)} 
+                            disabled={currentPage === totalPages}
+                            className={`px-3 py-1 rounded ${currentPage === totalPages ? 'bg-gray-700 text-gray-500' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
+                        >
+                            &rsaquo;
+                        </button>
+                        <button 
+                            onClick={() => handlePageChange(totalPages)} 
+                            disabled={currentPage === totalPages}
+                            className={`px-3 py-1 rounded ${currentPage === totalPages ? 'bg-gray-700 text-gray-500' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
+                        >
+                            &raquo;
+                        </button>
+                    </div>
+                </div>
+            )}
           </div>
         )}
 
         {activeTab === 'commissions' && (
           <div>
             <h2 className="text-xl font-semibold text-branco font-sora mb-4">Histórico de Comissões</h2>
-            {/* TODO: Add filters for period and type */}
             <div className="overflow-x-auto">
                 <table className="min-w-full text-sm text-left text-branco">
                     <thead className="bg-gray-700 text-xs uppercase">
@@ -394,11 +559,11 @@ const AffiliateDetailPage: React.FC = () => {
             </div>
           </div>
         )}
+
         {activeTab === 'withdrawals' && (
           <div>
             <h2 className="text-xl font-semibold text-branco font-sora mb-4">Histórico de Saques</h2>
-            {/* TODO: Add filters for period and status */}
-             <div className="overflow-x-auto">
+            <div className="overflow-x-auto">
                 <table className="min-w-full text-sm text-left text-branco">
                     <thead className="bg-gray-700 text-xs uppercase">
                         <tr>
