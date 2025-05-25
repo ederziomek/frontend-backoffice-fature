@@ -13,7 +13,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
         {/* Menu Hambúrguer - Visível apenas em telas menores */}
         <button 
           onClick={toggleSidebar}
-          className="mr-4 p-1 text-azul-ciano hover:bg-cinza-escuro rounded-md md:hidden focus:outline-none focus:ring-2 focus:ring-azul-ciano"
+          className="mr-4 p-1 text-azul-ciano hover:bg-cinza-escuro rounded-md block md:hidden focus:outline-none focus:ring-2 focus:ring-azul-ciano"
           aria-label={isSidebarOpen ? "Fechar menu" : "Abrir menu"}
         >
           <Menu size={24} />

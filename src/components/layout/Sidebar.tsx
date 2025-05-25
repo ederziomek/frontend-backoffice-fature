@@ -103,7 +103,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       <aside 
         className={`fixed top-16 left-0 z-40 w-64 h-full bg-cinza-claro text-branco font-inter shadow-md transition-transform duration-300 ease-in-out ${
           isMobile ? (isOpen ? 'translate-x-0' : '-translate-x-full') : 'translate-x-0'
-        }`}
+        } ${!isMobile ? 'md:translate-x-0' : ''}`}
       >
         <div className="p-4">
           {/* Botão de fechar visível apenas em dispositivos móveis */}
