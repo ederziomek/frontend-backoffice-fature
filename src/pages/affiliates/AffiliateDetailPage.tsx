@@ -1,27 +1,65 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from "react-router-dom";
 import { mockAffiliates, Affiliate } from "../../components/affiliates/AffiliateTable"; // Assuming mockAffiliates is exported
-import { Edit2, ArrowLeft, Clock, DollarSign, Users, TrendingUp, FileText } from 'lucide-react';
+import { Edit2, ArrowLeft, Clock, DollarSign, Users, TrendingUp, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 
 // Mock data for downline and history - in a real app, this would be fetched
 const mockDownline = {
   'AF001': {
-    levels: { 'Nível 1': 5, 'Nível 2': 15, 'Nível 3': 30 },
+    levels: { 
+      'Nível 1': 5, 
+      'Nível 2': 15, 
+      'Nível 3': 30,
+      'Nível 4': 45,
+      'Nível 5': 22
+    },
+    commissions: {
+      'Nível 1': 1250.00,
+      'Nível 2': 850.00,
+      'Nível 3': 450.00,
+      'Nível 4': 200.00,
+      'Nível 5': 75.00
+    },
     levelDetails: {
       'Nível 1': [
-        { id: 'DL001', name: 'Sub Afiliado 1.1', commissionGenerated: 150.00 },
-        { id: 'DL002', name: 'Sub Afiliado 1.2', commissionGenerated: 200.00 },
+        { id: 'DL001', name: 'Sub Afiliado 1.1', level: 1, deposited: 2500.00, commissionGenerated: 150.00 },
+        { id: 'DL002', name: 'Sub Afiliado 1.2', level: 1, deposited: 3200.00, commissionGenerated: 200.00 },
+        { id: 'DL005', name: 'Sub Afiliado 1.3', level: 1, deposited: 1800.00, commissionGenerated: 120.00 },
+        { id: 'DL006', name: 'Sub Afiliado 1.4', level: 1, deposited: 4500.00, commissionGenerated: 280.00 },
+        { id: 'DL007', name: 'Sub Afiliado 1.5', level: 1, deposited: 5000.00, commissionGenerated: 500.00 },
       ],
       'Nível 2': [
-        { id: 'DL003', name: 'Sub Afiliado 2.1', commissionGenerated: 50.00 },
+        { id: 'DL003', name: 'Sub Afiliado 2.1', level: 2, deposited: 1200.00, commissionGenerated: 50.00 },
+        { id: 'DL008', name: 'Sub Afiliado 2.2', level: 2, deposited: 2300.00, commissionGenerated: 120.00 },
+        { id: 'DL009', name: 'Sub Afiliado 2.3', level: 2, deposited: 3400.00, commissionGenerated: 180.00 },
+        { id: 'DL010', name: 'Sub Afiliado 2.4', level: 2, deposited: 1500.00, commissionGenerated: 75.00 },
+        { id: 'DL011', name: 'Sub Afiliado 2.5', level: 2, deposited: 2800.00, commissionGenerated: 140.00 },
+      ],
+      'Nível 3': [
+        { id: 'DL012', name: 'Sub Afiliado 3.1', level: 3, deposited: 900.00, commissionGenerated: 45.00 },
+        { id: 'DL013', name: 'Sub Afiliado 3.2', level: 3, deposited: 1800.00, commissionGenerated: 90.00 },
+        { id: 'DL014', name: 'Sub Afiliado 3.3', level: 3, deposited: 2700.00, commissionGenerated: 135.00 },
+        { id: 'DL015', name: 'Sub Afiliado 3.4', level: 3, deposited: 1500.00, commissionGenerated: 75.00 },
+        { id: 'DL016', name: 'Sub Afiliado 3.5', level: 3, deposited: 2100.00, commissionGenerated: 105.00 },
+      ],
+      'Nível 4': [
+        { id: 'DL017', name: 'Sub Afiliado 4.1', level: 4, deposited: 800.00, commissionGenerated: 40.00 },
+        { id: 'DL018', name: 'Sub Afiliado 4.2', level: 4, deposited: 1600.00, commissionGenerated: 80.00 },
+        { id: 'DL019', name: 'Sub Afiliado 4.3', level: 4, deposited: 1200.00, commissionGenerated: 60.00 },
+        { id: 'DL020', name: 'Sub Afiliado 4.4', level: 4, deposited: 400.00, commissionGenerated: 20.00 },
+      ],
+      'Nível 5': [
+        { id: 'DL021', name: 'Sub Afiliado 5.1', level: 5, deposited: 500.00, commissionGenerated: 25.00 },
+        { id: 'DL022', name: 'Sub Afiliado 5.2', level: 5, deposited: 1000.00, commissionGenerated: 50.00 },
       ]
     }
   },
   'AF002': {
     levels: { 'Nível 1': 2 },
+    commissions: { 'Nível 1': 75.00 },
     levelDetails: {
       'Nível 1': [
-        { id: 'DL004', name: 'Sub Afiliado Outro 1.1', commissionGenerated: 75.00 },
+        { id: 'DL004', name: 'Sub Afiliado Outro 1.1', level: 1, deposited: 1500.00, commissionGenerated: 75.00 },
       ]
     }
   }
@@ -49,7 +87,12 @@ const AffiliateDetailPage: React.FC = () => {
   const { affiliateId } = useParams<{ affiliateId: string }>();
   // const navigate = useNavigate(); // Commented out as unused
   const [affiliate, setAffiliate] = useState<Affiliate | undefined>(undefined);
-  const [activeTab, setActiveTab] = useState<'details' | 'network' | 'commissions' | 'withdrawals' | 'activity'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'network' | 'commissions' | 'withdrawals' | 'activity'>('network');
+  const [selectedLevel, setSelectedLevel] = useState<string>('Todos');
+  const [sortConfig, setSortConfig] = useState<{key: string, direction: 'ascending' | 'descending'}>({
+    key: 'name',
+    direction: 'ascending'
+  });
 
   useEffect(() => {
     if (affiliateId) {
@@ -72,7 +115,69 @@ const AffiliateDetailPage: React.FC = () => {
     }
   };
 
-  const affiliateDownline = (mockDownline as any)[affiliate.id] || { levels: {}, levelDetails: {} };
+  const affiliateDownline = (mockDownline as any)[affiliate.id] || { 
+    levels: {}, 
+    commissions: {},
+    levelDetails: {} 
+  };
+
+  // Filter downline details based on selected level
+  const getFilteredDownlineDetails = () => {
+    let allDetails: any[] = [];
+    
+    if (selectedLevel === 'Todos') {
+      // Combine all levels
+      Object.values(affiliateDownline.levelDetails).forEach((details: any) => {
+        allDetails = [...allDetails, ...details];
+      });
+    } else {
+      // Get specific level
+      allDetails = affiliateDownline.levelDetails[selectedLevel] || [];
+    }
+    
+    return sortDownlineDetails(allDetails);
+  };
+
+  // Sort downline details based on sort configuration
+  const sortDownlineDetails = (details: any[]) => {
+    return [...details].sort((a, b) => {
+      if (a[sortConfig.key] < b[sortConfig.key]) {
+        return sortConfig.direction === 'ascending' ? -1 : 1;
+      }
+      if (a[sortConfig.key] > b[sortConfig.key]) {
+        return sortConfig.direction === 'ascending' ? 1 : -1;
+      }
+      return 0;
+    });
+  };
+
+  // Handle sort request
+  const requestSort = (key: string) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  // Calculate totals for the filtered downline details
+  const calculateTotals = (details: any[]) => {
+    return details.reduce((totals, item) => {
+      return {
+        deposited: totals.deposited + item.deposited,
+        commissionGenerated: totals.commissionGenerated + item.commissionGenerated
+      };
+    }, { deposited: 0, commissionGenerated: 0 });
+  };
+
+  const filteredDownlineDetails = getFilteredDownlineDetails();
+  const totals = calculateTotals(filteredDownlineDetails);
+
+  // Get sort indicator
+  const getSortIndicator = (key: string) => {
+    if (sortConfig.key !== key) return null;
+    return sortConfig.direction === 'ascending' ? <ChevronUp size={14} /> : <ChevronDown size={14} />;
+  };
 
   return (
     <div className="bg-cinza-escuro p-1">
@@ -167,33 +272,102 @@ const AffiliateDetailPage: React.FC = () => {
           <div>
             <h2 className="text-xl font-semibold text-branco font-sora mb-4">Rede do Afiliado</h2>
             <div className="mb-4">
-                <p><strong className="text-gray-400">Upline Direto:</strong> {affiliate.upline || 'Nenhum'}</p>
+                <p><strong className="text-gray-400">Upline Direto:</strong> {affiliate.upline || 'AF000Mestre'}</p>
             </div>
             <h3 className="text-lg font-semibold text-branco mb-2">Contagem de Indicados por Nível:</h3>
             <div className="flex flex-wrap gap-4 mb-6">
                 {Object.entries(affiliateDownline.levels).map(([level, count]) => (
-                    <div key={level} className="bg-cinza-escuro p-3 rounded-md text-center">
+                    <div key={level} className="bg-cinza-escuro p-3 rounded-md text-center w-40">
                         <p className="text-xs text-gray-400">{level}</p>
                         <p className="text-2xl font-bold text-azul-ciano">{count as number}</p>
+                        <p className="text-xs text-gray-300 mt-1">Comissão Total:</p>
+                        <p className="text-sm font-semibold text-green-400">
+                            R$ {affiliateDownline.commissions[level]?.toFixed(2) || '0.00'}
+                        </p>
                     </div>
                 ))}
                 {Object.keys(affiliateDownline.levels).length === 0 && <p className="text-gray-400">Nenhum indicado na rede.</p>}
             </div>
-            <h3 className="text-lg font-semibold text-branco mb-2">Detalhes da Downline (por Nível):</h3>
-            {/* TODO: Add dropdown to filter by level and paginate results */}
-            {Object.entries(affiliateDownline.levelDetails).map(([level, details]) => (
-                <div key={level} className="mb-4">
-                    <h4 className="font-medium text-azul-ciano mb-1">{level}</h4>
-                    {(details as any[]).length > 0 ? (
-                        <ul className="list-disc list-inside text-sm text-gray-300 space-y-1">
-                            {(details as any[]).map(item => (
-                                <li key={item.id}>{item.name} (ID: {item.id}) - Comissões Geradas: R$ {item.commissionGenerated.toFixed(2)}</li>
-                            ))}
-                        </ul>
-                    ) : <p className="text-sm text-gray-400">Nenhum indicado neste nível.</p>}
+            <h3 className="text-lg font-semibold text-branco mb-2">Detalhes da Downline:</h3>
+            
+            {/* Filter Controls */}
+            <div className="flex flex-wrap gap-4 mb-4 items-center">
+                <div className="flex items-center">
+                    <label className="text-gray-400 mr-2 text-sm">Filtrar por Nível:</label>
+                    <select 
+                        className="bg-cinza-escuro text-branco border border-gray-600 rounded px-3 py-1 text-sm"
+                        value={selectedLevel}
+                        onChange={(e) => setSelectedLevel(e.target.value)}
+                    >
+                        <option value="Todos">Todos os Níveis</option>
+                        <option value="Nível 1">Nível 1</option>
+                        <option value="Nível 2">Nível 2</option>
+                        <option value="Nível 3">Nível 3</option>
+                        <option value="Nível 4">Nível 4</option>
+                        <option value="Nível 5">Nível 5</option>
+                    </select>
                 </div>
-            ))}
-             {Object.keys(affiliateDownline.levelDetails).length === 0 && <p className="text-gray-400">Nenhum detalhe de downline disponível.</p>}
+            </div>
+            
+            {/* Downline Table */}
+            <div className="overflow-x-auto">
+                <table className="min-w-full text-sm text-left text-branco">
+                    <thead className="bg-gray-700 text-xs uppercase">
+                        <tr>
+                            <th className="px-4 py-2 cursor-pointer" onClick={() => requestSort('name')}>
+                                <div className="flex items-center">
+                                    Nome Afiliado {getSortIndicator('name')}
+                                </div>
+                            </th>
+                            <th className="px-4 py-2 cursor-pointer" onClick={() => requestSort('id')}>
+                                <div className="flex items-center">
+                                    ID Afiliado {getSortIndicator('id')}
+                                </div>
+                            </th>
+                            <th className="px-4 py-2 cursor-pointer" onClick={() => requestSort('level')}>
+                                <div className="flex items-center">
+                                    Nível {getSortIndicator('level')}
+                                </div>
+                            </th>
+                            <th className="px-4 py-2 cursor-pointer" onClick={() => requestSort('deposited')}>
+                                <div className="flex items-center">
+                                    Valor Depositado {getSortIndicator('deposited')}
+                                </div>
+                            </th>
+                            <th className="px-4 py-2 cursor-pointer" onClick={() => requestSort('commissionGenerated')}>
+                                <div className="flex items-center">
+                                    Comissão Gerada {getSortIndicator('commissionGenerated')}
+                                </div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredDownlineDetails.map((item, idx) => (
+                            <tr key={idx} className="border-b border-gray-700 hover:bg-cinza-escuro">
+                                <td className="px-4 py-2">{item.name}</td>
+                                <td className="px-4 py-2">{item.id}</td>
+                                <td className="px-4 py-2">Nível {item.level}</td>
+                                <td className="px-4 py-2">R$ {item.deposited.toFixed(2)}</td>
+                                <td className="px-4 py-2">R$ {item.commissionGenerated.toFixed(2)}</td>
+                            </tr>
+                        ))}
+                        {filteredDownlineDetails.length === 0 && 
+                            <tr>
+                                <td colSpan={5} className="text-center py-4 text-gray-400">
+                                    Nenhum afiliado encontrado para o filtro selecionado.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot className="bg-gray-800 font-semibold">
+                        <tr>
+                            <td colSpan={3} className="px-4 py-2 text-right">Total:</td>
+                            <td className="px-4 py-2">R$ {totals.deposited.toFixed(2)}</td>
+                            <td className="px-4 py-2">R$ {totals.commissionGenerated.toFixed(2)}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
           </div>
         )}
 
@@ -260,4 +434,3 @@ const AffiliateDetailPage: React.FC = () => {
 };
 
 export default AffiliateDetailPage;
-
