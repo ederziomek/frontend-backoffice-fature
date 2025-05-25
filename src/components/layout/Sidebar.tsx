@@ -91,29 +91,55 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   
   const currentMainPath = getMainPath(currentPath);
 
+  // Estilo inline para garantir comportamento consistente em todos os dispositivos
+  const sidebarStyle = {
+    position: 'fixed' as const,
+    top: '4rem', // 16px
+    left: 0,
+    width: '16rem', // 64px * 0.25 = 16rem
+    height: 'calc(100% - 4rem)',
+    zIndex: 40,
+    backgroundColor: '#1e2124', // bg-cinza-claro
+    color: '#ffffff', // text-branco
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', // shadow-md
+    transition: 'transform 0.3s ease-in-out',
+    transform: isMobile 
+      ? (isOpen ? 'translateX(0)' : 'translateX(-100%)') 
+      : 'translateX(0)',
+    display: 'block'
+  };
+
+  // Estilo do overlay
+  const overlayStyle = {
+    position: 'fixed' as const,
+    inset: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 30
+  };
+
   return (
     <>
       {/* Overlay para fechar o menu ao clicar fora - visível apenas em mobile quando o menu está aberto */}
-      <div 
-        className={`fixed inset-0 bg-black bg-opacity-50 z-30 ${isOpen && isMobile ? 'block' : 'hidden'}`}
-        onClick={onClose}
-      ></div>
+      {isMobile && isOpen && (
+        <div 
+          style={overlayStyle}
+          onClick={onClose}
+        ></div>
+      )}
       
-      {/* Sidebar - usando as classes CSS globais definidas no index.css */}
-      <aside 
-        className={`sidebar fixed top-16 left-0 z-40 w-64 h-full bg-cinza-claro text-branco font-inter shadow-md ${
-          isOpen && isMobile ? 'sidebar-visible' : ''
-        } ${!isMobile ? 'md:block' : ''}`}
-      >
+      {/* Sidebar com abordagem simplificada usando estilos inline */}
+      <aside style={sidebarStyle}>
         <div className="p-4">
           {/* Botão de fechar visível apenas em dispositivos móveis */}
-          <button 
-            className="md:hidden absolute top-2 right-2 p-1 text-gray-400 hover:text-white hover:bg-cinza-escuro rounded-full"
-            onClick={onClose}
-            aria-label="Fechar menu"
-          >
-            <X size={20} />
-          </button>
+          {isMobile && (
+            <button 
+              className="absolute top-2 right-2 p-1 text-gray-400 hover:text-white hover:bg-cinza-escuro rounded-full"
+              onClick={onClose}
+              aria-label="Fechar menu"
+            >
+              <X size={20} />
+            </button>
+          )}
           
           <nav className="mt-6 md:mt-0">
             <ul>
