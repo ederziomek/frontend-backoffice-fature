@@ -12,18 +12,26 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   // Verificar se é dispositivo móvel na montagem e em redimensionamentos
   useEffect(() => {
     const checkMobile = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
+      setIsMobile(window.innerWidth < 768);
     };
     
     // Verificar inicialmente
     checkMobile();
     
-    // Adicionar listener para redimensionamento
-    window.addEventListener('resize', checkMobile);
+    // Adicionar listener para redimensionamento com throttling
+    let resizeTimeout: NodeJS.Timeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(checkMobile, 100);
+    };
+    
+    window.addEventListener('resize', handleResize);
     
     // Limpar listener ao desmontar
-    return () => window.removeEventListener('resize', checkMobile);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(resizeTimeout);
+    };
   }, []);
 
   // Adicionar/remover classe no body para prevenir scroll quando o menu está aberto em mobile
@@ -91,30 +99,30 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   
   const currentMainPath = getMainPath(currentPath);
 
-  // Estilo inline para garantir comportamento consistente em todos os dispositivos
-  const sidebarStyle = {
-    position: 'fixed' as const,
-    top: '4rem', // 16px
+  // Estilos para o sidebar
+  const sidebarStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: '4rem', // 64px
     left: 0,
-    width: '16rem', // 64px * 0.25 = 16rem
-    height: 'calc(100% - 4rem)',
-    zIndex: 40,
-    backgroundColor: '#1e2124', // bg-cinza-claro
+    width: isMobile ? '80%' : '16rem', // 80% em mobile, 256px em desktop
+    maxWidth: '16rem', // 256px
+    height: 'calc(100vh - 4rem)',
+    backgroundColor: '#212a31', // bg-cinza-claro
     color: '#ffffff', // text-branco
+    zIndex: 40,
     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', // shadow-md
     transition: 'transform 0.3s ease-in-out',
-    transform: isMobile 
-      ? (isOpen ? 'translateX(0)' : 'translateX(-100%)') 
-      : 'translateX(0)',
-    display: 'block'
+    transform: isMobile ? (isOpen ? 'translateX(0)' : 'translateX(-100%)') : 'translateX(0)',
+    overflowY: 'auto',
+    padding: '1rem', // 16px
   };
 
-  // Estilo do overlay
-  const overlayStyle = {
-    position: 'fixed' as const,
+  // Estilos para o overlay
+  const overlayStyle: React.CSSProperties = {
+    position: 'fixed',
     inset: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    zIndex: 30
+    zIndex: 30,
   };
 
   return (
@@ -127,51 +135,49 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         ></div>
       )}
       
-      {/* Sidebar com abordagem simplificada usando estilos inline */}
+      {/* Sidebar */}
       <aside style={sidebarStyle}>
-        <div className="p-4">
-          {/* Botão de fechar visível apenas em dispositivos móveis */}
-          {isMobile && (
-            <button 
-              className="absolute top-2 right-2 p-1 text-gray-400 hover:text-white hover:bg-cinza-escuro rounded-full"
-              onClick={onClose}
-              aria-label="Fechar menu"
-            >
-              <X size={20} />
-            </button>
-          )}
-          
-          <nav className="mt-6 md:mt-0">
-            <ul>
-              {menuItems.map((item, index) => {
-                // Verificar se este item corresponde à rota atual
-                const isActive = getMainPath(item.href) === currentMainPath;
-                
-                return (
-                  <li key={index} className="mt-2">
-                    <a
-                      href={item.href}
-                      className={`flex items-center px-3 py-2 text-sm rounded-md hover:bg-cinza-escuro ${
-                        isActive ? 'bg-cinza-medio text-azul-ciano font-semibold' : item.activeColor
-                      }`}
-                      onClick={() => {
-                        // Em dispositivos móveis, fechar o menu ao clicar em um item
-                        if (isMobile) {
-                          onClose();
-                        }
-                      }}
-                    >
-                      {React.cloneElement(item.icon, { 
-                        className: `w-5 h-5 mr-3 ${isActive ? 'text-azul-ciano' : 'text-azul-ciano'}` 
-                      })}
-                      {item.label}
-                    </a>
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
-        </div>
+        {/* Botão de fechar visível apenas em dispositivos móveis */}
+        {isMobile && (
+          <button 
+            className="absolute top-2 right-2 p-1 text-gray-400 hover:text-white hover:bg-cinza-escuro rounded-full"
+            onClick={onClose}
+            aria-label="Fechar menu"
+          >
+            <X size={20} />
+          </button>
+        )}
+        
+        <nav className="mt-6 md:mt-0">
+          <ul>
+            {menuItems.map((item, index) => {
+              // Verificar se este item corresponde à rota atual
+              const isActive = getMainPath(item.href) === currentMainPath;
+              
+              return (
+                <li key={index} className="mt-2">
+                  <a
+                    href={item.href}
+                    className={`flex items-center px-3 py-2 text-sm rounded-md hover:bg-cinza-escuro ${
+                      isActive ? 'bg-cinza-medio text-azul-ciano font-semibold' : item.activeColor
+                    }`}
+                    onClick={() => {
+                      // Em dispositivos móveis, fechar o menu ao clicar em um item
+                      if (isMobile) {
+                        onClose();
+                      }
+                    }}
+                  >
+                    {React.cloneElement(item.icon, { 
+                      className: `w-5 h-5 mr-3 ${isActive ? 'text-azul-ciano' : 'text-azul-ciano'}` 
+                    })}
+                    {item.label}
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
       </aside>
     </>
   );
