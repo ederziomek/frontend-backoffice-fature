@@ -25,3 +25,41 @@
   }
 }
 
+
+/* Estilos globais para o menu responsivo */
+.sidebar {
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Em dispositivos móveis, o sidebar fica oculto por padrão */
+@media (max-width: 767px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  
+  .sidebar-visible {
+    transform: translateX(0);
+  }
+  
+  /* Prevenir scroll do body quando o menu está aberto */
+  body.sidebar-open {
+    overflow: hidden;
+  }
+  
+  /* Ajustar o conteúdo principal para não ter margem em mobile */
+  .main-content {
+    margin-left: 0 !important;
+  }
+}
+
+/* Em desktop, o sidebar fica sempre visível */
+@media (min-width: 768px) {
+  .sidebar {
+    transform: translateX(0);
+  }
+  
+  /* Ajustar o conteúdo principal para ter margem em desktop */
+  .main-content {
+    margin-left: 16rem !important; /* 64 * 0.25 = 16rem */
+  }
+}

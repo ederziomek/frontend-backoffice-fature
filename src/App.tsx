@@ -15,27 +15,6 @@ import ContentPage from './pages/content/ContentPage'; // Import the new Content
 function App() {
   // Estado para controlar a visibilidade do sidebar em dispositivos móveis
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  
-  // Detectar tamanho da tela para controle do sidebar
-  useEffect(() => {
-    const checkMobile = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      
-      // Se mudar para desktop e o menu estiver aberto, feche-o
-      if (!mobile && isSidebarOpen) {
-        setIsSidebarOpen(false);
-      }
-    };
-    
-    // Verificar inicialmente
-    checkMobile();
-    
-    // Adicionar listener para redimensionamento
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, [isSidebarOpen]);
 
   // Função para alternar a visibilidade do sidebar
   const toggleSidebar = () => {
@@ -53,7 +32,7 @@ function App() {
         <Header toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
         <div className="flex flex-1 pt-16"> {/* Adjust pt-16 based on actual Header height */}
           <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
-          <main className={`flex-1 p-6 transition-all duration-300 ${!isMobile ? 'ml-64' : 'ml-0'}`}>
+          <main className="main-content flex-1 p-6 transition-all duration-300">
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardPage />} />
