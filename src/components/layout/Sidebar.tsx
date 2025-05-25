@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { LayoutDashboard, Users, UserSquare, Settings, DollarSign, FolderKanban, X } from 'lucide-react';
 
 interface SidebarProps {
@@ -7,17 +7,23 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  // Fechar o sidebar quando a tela for redimensionada para desktop
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 768 && isOpen) {
-        onClose();
-      }
-    };
+  const [isMobile, setIsMobile] = useState(false);
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [isOpen, onClose]);
+  // Verificar se é dispositivo móvel na montagem e em redimensionamentos
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Verificar inicialmente
+    checkMobile();
+    
+    // Adicionar listener para redimensionamento
+    window.addEventListener('resize', checkMobile);
+    
+    // Limpar listener ao desmontar
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const menuItems = [
     {
@@ -61,45 +67,67 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   // This is a simple way to highlight, ideally use NavLink from react-router-dom
   const currentPath = window.location.hash;
 
-  // Classes para controlar a visibilidade e animação do sidebar
-  const sidebarClasses = `fixed top-16 left-0 z-40 w-64 h-full bg-cinza-claro text-branco font-inter shadow-md transition-transform duration-300 ease-in-out ${
-    isOpen ? 'translate-x-0' : '-translate-x-full'
-  } md:translate-x-0`;
-
-  // Classes para o overlay que aparece atrás do sidebar em dispositivos móveis
-  const overlayClasses = `fixed inset-0 bg-black bg-opacity-50 z-30 transition-opacity duration-300 md:hidden ${
-    isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-  }`;
-
-  return (
-    <>
-      {/* Overlay para fechar o menu ao clicar fora */}
-      <div className={overlayClasses} onClick={onClose}></div>
-      
-      <aside className={sidebarClasses}>
-        <div className="p-4">
-          {/* Botão de fechar visível apenas em dispositivos móveis */}
-          <button 
-            className="md:hidden absolute top-2 right-2 p-1 text-gray-400 hover:text-white hover:bg-cinza-escuro rounded-full"
+  // Renderização condicional baseada no tamanho da tela
+  if (isMobile) {
+    // Versão mobile - menu deslizante
+    return (
+      <>
+        {/* Overlay para fechar o menu ao clicar fora - apenas visível quando o menu está aberto */}
+        {isOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-30"
             onClick={onClose}
-            aria-label="Fechar menu"
-          >
-            <X size={20} />
-          </button>
-          
-          <nav className="mt-6 md:mt-0">
+          ></div>
+        )}
+        
+        {/* Menu deslizante - visível apenas quando aberto */}
+        <aside 
+          className={`fixed top-16 left-0 z-40 w-64 h-full bg-cinza-claro text-branco font-inter shadow-md transition-transform duration-300 ease-in-out ${
+            isOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <div className="p-4">
+            {/* Botão de fechar */}
+            <button 
+              className="absolute top-2 right-2 p-1 text-gray-400 hover:text-white hover:bg-cinza-escuro rounded-full"
+              onClick={onClose}
+              aria-label="Fechar menu"
+            >
+              <X size={20} />
+            </button>
+            
+            <nav className="mt-6">
+              <ul>
+                {menuItems.map((item, index) => (
+                  <li key={index} className="mt-2">
+                    <a
+                      href={item.href}
+                      className={`flex items-center px-3 py-2 text-sm rounded-md hover:bg-cinza-escuro ${currentPath === item.href.substring(1) ? 'bg-cinza-medio text-azul-ciano font-semibold' : item.activeColor}`}
+                      onClick={onClose}
+                    >
+                      {React.cloneElement(item.icon, { className: `w-5 h-5 mr-3 ${currentPath === item.href.substring(1) ? 'text-azul-ciano' : 'text-azul-ciano'}` })}
+                      {item.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </div>
+        </aside>
+      </>
+    );
+  } else {
+    // Versão desktop - menu fixo
+    return (
+      <aside className="fixed top-16 left-0 z-40 w-64 h-full bg-cinza-claro text-branco font-inter shadow-md">
+        <div className="p-4">
+          <nav>
             <ul>
               {menuItems.map((item, index) => (
                 <li key={index} className="mt-2">
                   <a
                     href={item.href}
                     className={`flex items-center px-3 py-2 text-sm rounded-md hover:bg-cinza-escuro ${currentPath === item.href.substring(1) ? 'bg-cinza-medio text-azul-ciano font-semibold' : item.activeColor}`}
-                    onClick={() => {
-                      // Em dispositivos móveis, fechar o menu ao clicar em um item
-                      if (window.innerWidth < 768) {
-                        onClose();
-                      }
-                    }}
                   >
                     {React.cloneElement(item.icon, { className: `w-5 h-5 mr-3 ${currentPath === item.href.substring(1) ? 'text-azul-ciano' : 'text-azul-ciano'}` })}
                     {item.label}
@@ -110,8 +138,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </nav>
         </div>
       </aside>
-    </>
-  );
+    );
+  }
 };
 
 export default Sidebar;
