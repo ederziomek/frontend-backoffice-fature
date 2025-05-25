@@ -99,11 +99,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         onClick={onClose}
       ></div>
       
-      {/* Sidebar - em mobile fica oculto por padrão, em desktop sempre visível */}
+      {/* Sidebar - usando as classes CSS globais definidas no index.css */}
       <aside 
-        className={`fixed top-16 left-0 z-40 w-64 h-full bg-cinza-claro text-branco font-inter shadow-md transition-transform duration-300 ease-in-out ${
-          isMobile ? (isOpen ? 'translate-x-0' : '-translate-x-full') : 'hidden md:block md:translate-x-0'
-        }`}
+        className={`sidebar fixed top-16 left-0 z-40 w-64 h-full bg-cinza-claro text-branco font-inter shadow-md ${
+          isOpen && isMobile ? 'sidebar-visible' : ''
+        } ${!isMobile ? 'md:block' : ''}`}
       >
         <div className="p-4">
           {/* Botão de fechar visível apenas em dispositivos móveis */}
