@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { LayoutDashboard, Users, UserSquare, Settings, DollarSign, FolderKanban, X } from 'lucide-react';
 
 interface SidebarProps {
@@ -7,6 +7,18 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+  // Fechar o sidebar quando a tela for redimensionada para desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768 && isOpen) {
+        onClose();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isOpen, onClose]);
+
   const menuItems = [
     {
       href: '/#/dashboard',
@@ -51,8 +63,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   // Classes para controlar a visibilidade e animação do sidebar
   const sidebarClasses = `fixed top-16 left-0 z-40 w-64 h-full bg-cinza-claro text-branco font-inter shadow-md transition-transform duration-300 ease-in-out ${
-    isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-  }`;
+    isOpen ? 'translate-x-0' : '-translate-x-full'
+  } md:translate-x-0`;
 
   // Classes para o overlay que aparece atrás do sidebar em dispositivos móveis
   const overlayClasses = `fixed inset-0 bg-black bg-opacity-50 z-30 transition-opacity duration-300 md:hidden ${

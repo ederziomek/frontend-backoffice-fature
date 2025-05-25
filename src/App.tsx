@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
@@ -15,6 +15,18 @@ import ContentPage from './pages/content/ContentPage'; // Import the new Content
 function App() {
   // Estado para controlar a visibilidade do sidebar em dispositivos móveis
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  // Detectar tamanho da tela para controle do sidebar
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsSidebarOpen(false);
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Função para alternar a visibilidade do sidebar
   const toggleSidebar = () => {
