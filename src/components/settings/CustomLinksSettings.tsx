@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link2, Plus, Copy, QrCode, BarChart3, Download, Trash2 } from 'lucide-react';ide-react';
+import { Link2, Plus, Copy, QrCode, BarChart3, Download, Trash2 } from 'lucide-react';
 
 interface CustomLink {
   id: string;
