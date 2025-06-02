@@ -1,7 +1,7 @@
 import React from 'react'; // Removido useState
 import { Link } from 'react-router-dom'; // For navigation to UserFormPage
 import UserTable from '../../components/users/UserTable'; // Import the UserTable component
-import { Plus } from 'lucide-react';
+import { Plus, Activity } from 'lucide-react';
 
 // Define User type, can be moved to a types file
 interface User { 
@@ -29,14 +29,24 @@ const UserListPage: React.FC = () => {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-branco font-sora">Gerenciar Usuários do Backoffice</h1>
-        <Link
-          to="/users/new"
-          className="px-4 py-2 text-sm font-bold text-branco bg-azul-ciano rounded-md hover:bg-opacity-80 flex items-center"
-          style={{fontWeight: 900, fontSize: '12px', borderRadius: '5px', padding: '8px 12px'}}
-        >
-          <Plus size={16} className="mr-2" />
-          Adicionar Novo Usuário
-        </Link>
+        <div className="flex gap-3">
+          <Link
+            to="/users/logs"
+            className="px-4 py-2 text-sm font-bold text-branco bg-green-600 rounded-md hover:bg-green-700 flex items-center"
+            style={{fontWeight: 900, fontSize: '12px', borderRadius: '5px', padding: '8px 12px'}}
+          >
+            <Activity size={16} className="mr-2" />
+            Logs de Usuários
+          </Link>
+          <Link
+            to="/users/new"
+            className="px-4 py-2 text-sm font-bold text-branco bg-azul-ciano rounded-md hover:bg-opacity-80 flex items-center"
+            style={{fontWeight: 900, fontSize: '12px', borderRadius: '5px', padding: '8px 12px'}}
+          >
+            <Plus size={16} className="mr-2" />
+            Adicionar Novo Usuário
+          </Link>
+        </div>
       </div>
       
       {/* Filters Section */}

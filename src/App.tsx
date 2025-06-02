@@ -11,7 +11,7 @@ import AffiliateFormPage from './pages/affiliates/AffiliateFormPage';
 import SettingsPage from './pages/settings/SettingsPage'; // Main page for all settings
 import FinancialPage from './pages/financial/FinancialPage'; // Main page for financial module
 import ContentPage from './pages/content/ContentPage'; // Import the new ContentPage
-import SecurityPage from './pages/security/SecurityPage'; // Import the new SecurityPage
+import UserLogsPage from './pages/users/UserLogsPage'; // Import the new SecurityPage
 
 function App() {
   // Estado para controlar a visibilidade do sidebar em dispositivos móveis
@@ -40,6 +40,7 @@ function App() {
               <Route path="/users" element={<UserListPage />} />
               <Route path="/users/new" element={<UserFormPage />} />
               <Route path="/users/edit/:userId" element={<UserFormPage />} />
+              <Route path="/users/logs" element={<UserLogsPage />} />
               <Route path="/affiliates" element={<AffiliateListPage />} />
               <Route path="/affiliates/new" element={<AffiliateFormPage />} />
               <Route path="/affiliates/edit/:affiliateId" element={<AffiliateFormPage />} />
