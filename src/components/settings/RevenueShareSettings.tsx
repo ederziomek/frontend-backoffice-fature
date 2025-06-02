@@ -10,6 +10,7 @@ interface RevenueShareSettingsData {
   abatimentoIndicacaoDiaria: boolean; // Se indicação diária é abatida do Revenue Share
   abatimentoBaus: boolean; // Se baús são abatidos do Revenue Share
   abatimentoLevelUp: boolean; // Se recompensas de subir de level são abatidas do Revenue Share
+  retencaoPercentage: number | string; // % de retenção abatido do GGR total
   
   // Configurações de Pagamento
   pagamentoPeloCofre: boolean; // Se todas as recompensas são pagas através do cofre
@@ -25,6 +26,7 @@ const initialSettings: RevenueShareSettingsData = {
   abatimentoIndicacaoDiaria: true,
   abatimentoBaus: true,
   abatimentoLevelUp: true,
+  retencaoPercentage: 5,
   pagamentoPeloCofre: true,
   limiteMinimoRevShare: 1,
   frequenciaPagamento: 'diario',
@@ -290,6 +292,33 @@ const RevenueShareSettings: React.FC = () => {
                     />
                     <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-azul-ciano"></div>
                   </label>
+                </div>
+                
+                <div className="p-4 bg-gray-800/50 rounded-md border border-gray-700">
+                  <div className="mb-3">
+                    <h4 className="text-sm font-semibold text-gray-300">Retenção</h4>
+                    <p className="text-xs text-gray-500">Percentual abatido do GGR total para custos de reativação de clientes</p>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="flex-1">
+                      <label className="block text-xs font-medium text-gray-400 mb-1">
+                        Percentual de Retenção (%)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={settings.retencaoPercentage}
+                        onChange={(e) => handleChange('retencaoPercentage', e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-azul-ciano focus:border-transparent"
+                        placeholder="5.0"
+                      />
+                    </div>
+                    <div className="text-xs text-gray-500 mt-6">
+                      Abatido do GGR antes do cálculo do Revenue Share
+                    </div>
+                  </div>
                 </div>
               </div>
               
