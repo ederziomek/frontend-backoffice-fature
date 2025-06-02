@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link2, Plus, Copy, QrCode, BarChart3, Download, Trash2 } from 'lucide-react';
 
 interface CustomLink {
@@ -112,7 +112,7 @@ const CustomLinksSettings: React.FC = () => {
       .substring(0, 30);
   };
 
-  const generateQRCode = (url: string) => {
+  const generateQRCode = () => {
     // Simulação de geração de QR Code
     return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
   };
@@ -138,7 +138,7 @@ const CustomLinksSettings: React.FC = () => {
       isActive: true,
       createdAt: new Date().toISOString().split('T')[0],
       lastClicked: '',
-      qrCodeUrl: generateQRCode(`https://fature.com/r/${newLink.customSlug}`),
+      qrCodeUrl: generateQRCode(),
     };
 
     setLinks([...links, link]);

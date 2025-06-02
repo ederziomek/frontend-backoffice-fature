@@ -11,7 +11,8 @@ import AffiliateFormPage from './pages/affiliates/AffiliateFormPage';
 import SettingsPage from './pages/settings/SettingsPage'; // Main page for all settings
 import FinancialPage from './pages/financial/FinancialPage'; // Main page for financial module
 import ContentPage from './pages/content/ContentPage'; // Import the new ContentPage
-import UserLogsPage from './pages/users/UserLogsPage'; // Import the new SecurityPage
+import UserLogsPage from './pages/users/UserLogsPage'; // Import the UserLogsPage
+import SecurityPage from './pages/security/SecurityPage'; // Import the SecurityPage
 
 function App() {
   // Estado para controlar a visibilidade do sidebar em dispositivos móveis
