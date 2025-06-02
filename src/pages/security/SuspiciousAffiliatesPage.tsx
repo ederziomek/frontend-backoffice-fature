@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertTriangle, Eye, TrendingUp, TrendingDown, Users, DollarSign, Search, Filter, Download } from 'lucide-react';
+import { AlertTriangle, Eye, TrendingUp, TrendingDown, Download } from 'lucide-react';
 
 interface SuspiciousAffiliate {
   id: string;
@@ -151,10 +151,6 @@ const SuspiciousAffiliatesPage: React.FC = () => {
       style: 'currency',
       currency: 'BRL',
     }).format(value);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('pt-BR');
   };
 
   const exportReport = () => {
