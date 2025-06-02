@@ -11,6 +11,7 @@ import AffiliateFormPage from './pages/affiliates/AffiliateFormPage';
 import SettingsPage from './pages/settings/SettingsPage'; // Main page for all settings
 import FinancialPage from './pages/financial/FinancialPage'; // Main page for financial module
 import ContentPage from './pages/content/ContentPage'; // Import the new ContentPage
+import SecurityPage from './pages/security/SecurityPage'; // Import the new SecurityPage
 
 function App() {
   // Estado para controlar a visibilidade do sidebar em dispositivos móveis
@@ -45,6 +46,7 @@ function App() {
               <Route path="/affiliates/detail/:affiliateId" element={<AffiliateDetailPage />} />
               <Route path="/settings/*" element={<SettingsPage />} /> {/* Catch-all for settings sub-routes */}
               <Route path="/financial/*" element={<FinancialPage />} /> {/* Catch-all for financial sub-routes */}
+              <Route path="/security/*" element={<SecurityPage />} /> {/* Catch-all for security sub-routes */}
               <Route path="/content" element={<ContentPage />} /> {/* Add route for Content Management */}
               {/* Add other routes here as needed */}
             </Routes>

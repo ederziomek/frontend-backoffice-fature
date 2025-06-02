@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, Users, UserSquare, Settings, DollarSign, FolderKanban, X } from 'lucide-react';
+import { LayoutDashboard, Users, UserSquare, Settings, DollarSign, FolderKanban, Shield, X } from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -76,6 +76,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       href: '/#/financial',
       icon: <DollarSign className="w-5 h-5 mr-3 text-azul-ciano" />,
       label: 'Gerenciamento Financeiro',
+      activeColor: 'text-branco',
+    },
+    {
+      href: '/#/security',
+      icon: <Shield className="w-5 h-5 mr-3 text-azul-ciano" />,
+      label: 'Segurança',
       activeColor: 'text-branco',
     },
     {
