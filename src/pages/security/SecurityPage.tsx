@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { Shield, Activity, AlertTriangle, Users, TrendingDown, Eye } from 'lucide-react';
+import { Shield, Activity, AlertTriangle, Users, Eye } from 'lucide-react';
 
 // Import security components
 import AuditLogsPage from './AuditLogsPage';

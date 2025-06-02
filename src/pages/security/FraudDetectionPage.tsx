@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, AlertCircle, TrendingUp, Users, Clock, Target } from 'lucide-react';
+import { Shield, AlertCircle, TrendingUp, Target } from 'lucide-react';
 
 interface FraudPattern {
   id: string;

@@ -15,13 +15,6 @@ interface NetworkNode {
   registrationDate: string;
 }
 
-interface NetworkConnection {
-  from: string;
-  to: string;
-  strength: number;
-  type: 'referral' | 'suspicious';
-}
-
 const NetworkAnalysisPage: React.FC = () => {
   const [networkNodes] = useState<NetworkNode[]>([
     {

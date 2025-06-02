@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertTriangle, Eye, TrendingUp, TrendingDown, Download } from 'lucide-react';
+import { AlertTriangle, Eye, Download } from 'lucide-react';
 
 interface SuspiciousAffiliate {
   id: string;
