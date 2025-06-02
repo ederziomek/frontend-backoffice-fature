@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { ListChecks, History, CreditCard, Receipt, BarChart3 } from 'lucide-react';
+import { ListChecks, History, CreditCard, Receipt, BarChart3, Calculator } from 'lucide-react';
 
 // Importar os componentes reais das páginas financeiras
 import WithdrawalRequestsPage from './WithdrawalRequestsPage';
@@ -8,10 +8,12 @@ import CommissionHistoryPage from './CommissionHistoryPage';
 import PaymentMethodsPage from './PaymentMethodsPage';
 import TransactionLogPage from './TransactionLogPage';
 import FinancialReportsPage from './FinancialReportsPage';
+import CommissionSimulationPage from './CommissionSimulationPage';
 
 const financialSections = [
   { path: 'withdrawal-requests', label: 'Solicitações de Saque', icon: ListChecks, component: WithdrawalRequestsPage },
   { path: 'commission-history', label: 'Histórico de Comissões', icon: History, component: CommissionHistoryPage },
+  { path: 'commission-simulation', label: 'Simulação de Comissões', icon: Calculator, component: CommissionSimulationPage },
   { path: 'payment-methods', label: 'Métodos de Pagamento', icon: CreditCard, component: PaymentMethodsPage },
   { path: 'transaction-log', label: 'Log de Transações', icon: Receipt, component: TransactionLogPage },
   { path: 'financial-reports', label: 'Relatórios Financeiros', icon: BarChart3, component: FinancialReportsPage },

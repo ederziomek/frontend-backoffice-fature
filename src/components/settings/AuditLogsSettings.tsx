@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Shield, Search, Filter, Download, AlertTriangle, Eye, Calendar, User, Activity } from 'lucide-react';
+import React, { useState } from 'react';
+import { Shield, Search, Download, AlertTriangle, Eye, Activity } from 'lucide-react';
 
 interface AuditLog {
   id: string;
@@ -38,7 +38,7 @@ interface AuditAlert {
 }
 
 const AuditLogsSettings: React.FC = () => {
-  const [logs, setLogs] = useState<AuditLog[]>([
+  const [logs] = useState<AuditLog[]>([
     {
       id: '1',
       timestamp: '2025-06-02T10:30:00Z',

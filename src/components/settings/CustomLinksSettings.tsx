@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link2, Plus, Copy, QrCode, BarChart3, Download, Edit, Trash2, ExternalLink, Eye } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link2, Plus, Copy, QrCode, BarChart3, Download, Trash2 } from 'lucide-react';ide-react';
 
 interface CustomLink {
   id: string;
@@ -75,7 +75,7 @@ const CustomLinksSettings: React.FC = () => {
     }
   ]);
 
-  const [analytics, setAnalytics] = useState<LinkAnalytics>({
+  const [analytics] = useState<LinkAnalytics>({
     totalClicks: 2140,
     totalConversions: 132,
     totalRevenue: 66000,
@@ -92,7 +92,6 @@ const CustomLinksSettings: React.FC = () => {
   });
 
   const [isCreating, setIsCreating] = useState(false);
-  const [editingLink, setEditingLink] = useState<CustomLink | null>(null);
   const [newLink, setNewLink] = useState({
     name: '',
     originalUrl: '',

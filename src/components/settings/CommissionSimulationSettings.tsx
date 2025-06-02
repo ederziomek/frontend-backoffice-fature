@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Calculator, TrendingUp, BarChart3, Download, Play, RefreshCw, Target, DollarSign } from 'lucide-react';
+import React, { useState } from 'react';
+import { Calculator, TrendingUp, BarChart3, Download, Play, RefreshCw, Target } from 'lucide-react';
 
 interface SimulationScenario {
   id: string;
@@ -30,7 +30,7 @@ interface MonteCarloParams {
 }
 
 const CommissionSimulationSettings: React.FC = () => {
-  const [scenarios, setScenarios] = useState<SimulationScenario[]>([
+  const [scenarios] = useState<SimulationScenario[]>([
     {
       id: '1',
       name: 'Cenário Conservador',
