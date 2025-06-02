@@ -1,13 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FolderPlus, Folder, FileText, FileVideo, ImageIcon, UploadCloud, MoreVertical, Trash2, Edit3, Download } from 'lucide-react';
-import { useToast } from "@/components/ui/use-toast";
+import { FolderPlus, Folder, FileText, FileVideo, ImageIcon, UploadCloud, MoreVertical, Trash2, Edit3, Download, X } from 'lucide-react';
 
 // Mock data types
 interface ContentFile {
@@ -99,7 +91,6 @@ const FILE_THEME_OPTIONS = ['Esportes', 'Casino', 'Tutorial', 'Promoção', 'Ger
 const FILE_FORMAT_OPTIONS = ['JPG', 'PNG', 'MP4', 'PDF', 'TXT', 'DOCX'];
 
 const ContentManagement: React.FC = () => {
-  const { toast } = useToast();
   const [folders, setFolders] = useState<ContentFolder[]>(initialFoldersData);
   const [selectedFolder, setSelectedFolder] = useState<ContentFolder | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -121,12 +112,16 @@ const ContentManagement: React.FC = () => {
   // Filter and Sort states for files
   const [filterType, setFilterType] = useState<string>('all');
   const [filterTheme, setFilterTheme] = useState<string>('all');
-  const [filterFormat] = useState<string>('all');
   const [sortOrder, setSortOrder] = useState<string>('uploadedAt_desc');
+
+  const showToast = (title: string, description: string, type: 'success' | 'error' = 'success') => {
+    // Simple toast implementation
+    console.log(`${type.toUpperCase()}: ${title} - ${description}`);
+  };
 
   const handleCreateFolder = () => {
     if (newFolderName.trim() === "") {
-      toast({ title: "Erro", description: "O nome da pasta não pode ser vazio.", variant: "destructive" });
+      showToast("Erro", "O nome da pasta não pode ser vazio.", 'error');
       return;
     }
     const newFolderData: ContentFolder = {
@@ -138,16 +133,16 @@ const ContentManagement: React.FC = () => {
     setFolders([newFolderData, ...folders]);
     setNewFolderName("");
     setIsNewFolderDialogOpen(false);
-    toast({ title: "Sucesso", description: `Pasta "${newFolderName}" criada.` });
+    showToast("Sucesso", `Pasta "${newFolderName}" criada.`);
   };
 
   const handleRenameFolder = () => {
     if (!folderToEdit || newFolderName.trim() === "") {
-      toast({ title: "Erro", description: "Selecione uma pasta e forneça um novo nome.", variant: "destructive" });
+      showToast("Erro", "Selecione uma pasta e forneça um novo nome.", 'error');
       return;
     }
     setFolders(folders.map(f => f.id === folderToEdit.id ? { ...f, name: newFolderName } : f));
-    toast({ title: "Sucesso", description: `Pasta "${folderToEdit.name}" renomeada para "${newFolderName}".` });
+    showToast("Sucesso", `Pasta "${folderToEdit.name}" renomeada para "${newFolderName}".`);
     setFolderToEdit(null);
     setNewFolderName("");
   };
@@ -155,7 +150,7 @@ const ContentManagement: React.FC = () => {
   const handleDeleteFolder = () => {
     if (!folderToDelete) return;
     setFolders(folders.filter(f => f.id !== folderToDelete.id));
-    toast({ title: "Sucesso", description: `Pasta "${folderToDelete.name}" excluída.` });
+    showToast("Sucesso", `Pasta "${folderToDelete.name}" excluída.`);
     setFolderToDelete(null);
     if (selectedFolder?.id === folderToDelete.id) {
         setSelectedFolder(null);
@@ -167,7 +162,7 @@ const ContentManagement: React.FC = () => {
       const file = event.target.files[0];
       const maxSize = newFile.type === 'video' ? 100 * 1024 * 1024 : 10 * 1024 * 1024;
       if (file.size > maxSize) {
-        toast({ title: "Erro de Upload", description: `O arquivo excede o tamanho máximo permitido (${maxSize / (1024*1024)}MB).`, variant: "destructive" });
+        showToast("Erro de Upload", `O arquivo excede o tamanho máximo permitido (${maxSize / (1024*1024)}MB).`, 'error');
         return;
       }
       setNewFile(prev => ({ ...prev, name: file.name, fileObject: file }));
@@ -176,7 +171,7 @@ const ContentManagement: React.FC = () => {
 
   const handleCreateFile = () => {
     if (!selectedFolder || !newFile.fileObject || newFile.name.trim() === "") {
-      toast({ title: "Erro", description: "Preencha todos os campos obrigatórios e selecione um arquivo.", variant: "destructive" });
+      showToast("Erro", "Preencha todos os campos obrigatórios e selecione um arquivo.", 'error');
       return;
     }
     const newFileData: ContentFile = {
@@ -200,43 +195,7 @@ const ContentManagement: React.FC = () => {
     setSelectedFolder(updatedFolders.find(f => f.id === selectedFolder.id) || null);
     setNewFile({ name: '', type: 'image', format: 'PNG', theme: 'Geral', description: '', fileObject: null });
     setIsUploadFileDialogOpen(false);
-    toast({ title: "Sucesso", description: `Arquivo "${newFileData.name}" enviado para "${selectedFolder.name}".` });
-  };
-  
-  const handleEditFile = () => {
-    if (!fileToEdit || !selectedFolder || newFile.name.trim() === "") {
-        toast({ title: "Erro", description: "Preencha o nome do arquivo.", variant: "destructive" });
-        return;
-    }
-    const updatedFiles = selectedFolder.files.map(f => 
-        f.id === fileToEdit.id 
-        ? { ...f, name: newFile.name, description: newFile.description, theme: newFile.theme, type: newFile.type, format: newFile.format }
-        : f
-    );
-    const updatedFolders = folders.map(f => 
-        f.id === selectedFolder.id 
-        ? { ...f, files: updatedFiles }
-        : f
-    );
-    setFolders(updatedFolders);
-    setSelectedFolder(updatedFolders.find(f => f.id === selectedFolder.id) || null);
-    setFileToEdit(null);
-    setNewFile({ name: '', type: 'image', format: 'PNG', theme: 'Geral', description: '', fileObject: null });
-    toast({ title: "Sucesso", description: `Arquivo "${newFile.name}" atualizado.` });
-  };
-
-  const handleDeleteFile = () => {
-    if (!fileToDelete || !selectedFolder) return;
-    const updatedFiles = selectedFolder.files.filter(f => f.id !== fileToDelete.id);
-    const updatedFolders = folders.map(f => 
-        f.id === selectedFolder.id 
-        ? { ...f, files: updatedFiles }
-        : f
-    );
-    setFolders(updatedFolders);
-    setSelectedFolder(updatedFolders.find(f => f.id === selectedFolder.id) || null);
-    setFileToDelete(null);
-    toast({ title: "Sucesso", description: `Arquivo "${fileToDelete.name}" excluído.` });
+    showToast("Sucesso", `Arquivo "${newFileData.name}" enviado para "${selectedFolder.name}".`);
   };
 
   const filteredRootFolders = folders.filter(folder =>
@@ -249,7 +208,6 @@ const ContentManagement: React.FC = () => {
 
     if (filterType !== 'all') tempFiles = tempFiles.filter(f => f.type === filterType);
     if (filterTheme !== 'all') tempFiles = tempFiles.filter(f => f.theme === filterTheme);
-    if (filterFormat !== 'all') tempFiles = tempFiles.filter(f => f.format === filterFormat);
     if (fileSearchTerm) {
         tempFiles = tempFiles.filter(file =>
             file.name.toLowerCase().includes(fileSearchTerm.toLowerCase()) ||
@@ -274,358 +232,294 @@ const ContentManagement: React.FC = () => {
 
   const getFileIcon = (type: ContentFile['type']) => {
     switch (type) {
-      case 'image': return <ImageIcon className="w-12 h-12 text-gray-400" />;
-      case 'video': return <FileVideo className="w-12 h-12 text-gray-400" />;
-      case 'document': return <FileText className="w-12 h-12 text-gray-400" />;
-      case 'text': return <FileText className="w-12 h-12 text-gray-400" />;
-      default: return <FileText className="w-12 h-12 text-gray-400" />;
+      case 'image': return <ImageIcon className="w-12 h-12 text-azul-ciano" />;
+      case 'video': return <FileVideo className="w-12 h-12 text-azul-ciano" />;
+      case 'document': return <FileText className="w-12 h-12 text-azul-ciano" />;
+      case 'text': return <FileText className="w-12 h-12 text-azul-ciano" />;
+      default: return <FileText className="w-12 h-12 text-azul-ciano" />;
     }
   };
 
   if (selectedFolder) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 bg-cinza-escuro text-branco p-6 rounded-lg">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <Button variant="outline" onClick={() => { setSelectedFolder(null); setFileSearchTerm(''); }} className="mb-2">
-              &larr; Voltar para Pastas
-            </Button>
-            <h2 className="text-xl font-semibold break-all">{selectedFolder.name}</h2>
+            <button 
+              onClick={() => { setSelectedFolder(null); setFileSearchTerm(''); }} 
+              className="mb-2 px-4 py-2 bg-cinza-claro text-branco rounded-md hover:bg-cinza-medio transition-colors"
+            >
+              ← Voltar para Pastas
+            </button>
+            <h2 className="text-xl font-semibold text-branco break-all">{selectedFolder.name}</h2>
           </div>
-          <Dialog open={isUploadFileDialogOpen} onOpenChange={(isOpen) => {setIsUploadFileDialogOpen(isOpen); if(!isOpen) setNewFile({ name: '', type: 'image', format: 'PNG', theme: 'Geral', description: '', fileObject: null });}}>
-            <DialogTrigger asChild>
-              <Button>
-                <UploadCloud className="mr-2 h-4 w-4" /> Upload de Arquivo
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[525px]">
-              <DialogHeader>
-                <DialogTitle>Fazer Upload para "{selectedFolder.name}"</DialogTitle>
-                <DialogDescription>
-                  Selecione o arquivo e preencha os detalhes. Limites: Imagens/Docs (10MB), Vídeos (100MB).
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <Input type="file" ref={fileInputRef} onChange={handleFileUpload} className="col-span-full" />
-                {newFile.fileObject && <p className="text-sm text-muted-foreground col-span-full">Selecionado: {newFile.fileObject.name} ({(newFile.fileObject.size / (1024*1024)).toFixed(2)} MB)</p>}
-                <Input placeholder="Título do Arquivo" value={newFile.name} onChange={(e) => setNewFile({...newFile, name: e.target.value})} className="col-span-full"/>
-                <Textarea placeholder="Descrição do arquivo" value={newFile.description} onChange={(e) => setNewFile({...newFile, description: e.target.value})} className="col-span-full"/>
-                <Select value={newFile.type} onValueChange={(value) => setNewFile({...newFile, type: value as ContentFile['type']})}>
-                    <SelectTrigger><SelectValue placeholder="Tipo de Arquivo" /></SelectTrigger>
-                    <SelectContent>{FILE_TYPE_OPTIONS.map(opt => <SelectItem key={opt} value={opt}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</SelectItem>)}</SelectContent>
-                </Select>
-                <Select value={newFile.format} onValueChange={(value) => setNewFile({...newFile, format: value})}>
-                    <SelectTrigger><SelectValue placeholder="Formato do Arquivo" /></SelectTrigger>
-                    <SelectContent>{FILE_FORMAT_OPTIONS.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}</SelectContent>
-                </Select>
-                 <Select value={newFile.theme} onValueChange={(value) => setNewFile({...newFile, theme: value})}>
-                    <SelectTrigger><SelectValue placeholder="Tema/Tag" /></SelectTrigger>
-                    <SelectContent>{FILE_THEME_OPTIONS.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsUploadFileDialogOpen(false)}>Cancelar</Button>
-                <Button onClick={handleCreateFile}>Salvar Arquivo</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <button
+            onClick={() => setIsUploadFileDialogOpen(true)}
+            className="flex items-center px-4 py-2 bg-azul-ciano text-branco rounded-md hover:bg-azul-ciano/80 transition-colors"
+          >
+            <UploadCloud className="mr-2 h-4 w-4" /> Upload de Arquivo
+          </button>
         </div>
 
-        {/* Rest of the file management interface */}
+        {/* File filters and search */}
         <div className="flex flex-col md:flex-row gap-2 md:gap-4 mb-4">
-            <Input 
-                type="search" 
-                placeholder="Buscar arquivos..." 
-                value={fileSearchTerm} 
-                onChange={(e) => setFileSearchTerm(e.target.value)} 
-                className="flex-1"
-            />
-            <div className="flex gap-2">
-                <Select value={filterType} onValueChange={setFilterType}>
-                    <SelectTrigger className="w-[120px]"><SelectValue placeholder="Tipo" /></SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        {FILE_TYPE_OPTIONS.map(opt => <SelectItem key={opt} value={opt}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-                <Select value={filterTheme} onValueChange={setFilterTheme}>
-                    <SelectTrigger className="w-[120px]"><SelectValue placeholder="Tema" /></SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        {FILE_THEME_OPTIONS.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-                <Select value={sortOrder} onValueChange={setSortOrder}>
-                    <SelectTrigger className="w-[140px]"><SelectValue placeholder="Ordenar" /></SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="uploadedAt_desc">Mais Recente</SelectItem>
-                        <SelectItem value="uploadedAt_asc">Mais Antigo</SelectItem>
-                        <SelectItem value="name_asc">Nome A-Z</SelectItem>
-                        <SelectItem value="name_desc">Nome Z-A</SelectItem>
-                        <SelectItem value="type_asc">Tipo A-Z</SelectItem>
-                        <SelectItem value="type_desc">Tipo Z-A</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
+          <input 
+            type="search" 
+            placeholder="Buscar arquivos..." 
+            value={fileSearchTerm} 
+            onChange={(e) => setFileSearchTerm(e.target.value)} 
+            className="flex-1 px-3 py-2 bg-cinza-claro text-branco rounded-md border border-gray-600 focus:border-azul-ciano focus:outline-none"
+          />
+          <div className="flex gap-2">
+            <select 
+              value={filterType} 
+              onChange={(e) => setFilterType(e.target.value)}
+              className="px-3 py-2 bg-cinza-claro text-branco rounded-md border border-gray-600 focus:border-azul-ciano focus:outline-none"
+            >
+              <option value="all">Todos os Tipos</option>
+              {FILE_TYPE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</option>)}
+            </select>
+            <select 
+              value={filterTheme} 
+              onChange={(e) => setFilterTheme(e.target.value)}
+              className="px-3 py-2 bg-cinza-claro text-branco rounded-md border border-gray-600 focus:border-azul-ciano focus:outline-none"
+            >
+              <option value="all">Todos os Temas</option>
+              {FILE_THEME_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+            <select 
+              value={sortOrder} 
+              onChange={(e) => setSortOrder(e.target.value)}
+              className="px-3 py-2 bg-cinza-claro text-branco rounded-md border border-gray-600 focus:border-azul-ciano focus:outline-none"
+            >
+              <option value="uploadedAt_desc">Mais Recente</option>
+              <option value="uploadedAt_asc">Mais Antigo</option>
+              <option value="name_asc">Nome A-Z</option>
+              <option value="name_desc">Nome Z-A</option>
+              <option value="type_asc">Tipo A-Z</option>
+              <option value="type_desc">Tipo Z-A</option>
+            </select>
+          </div>
         </div>
 
-        {currentFilesToDisplay.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <FileText className="w-16 h-16 text-gray-300 mb-4" />
-              <p className="text-lg font-medium text-gray-500 mb-2">Nenhum arquivo encontrado</p>
-              <p className="text-sm text-gray-400 text-center">
-                {fileSearchTerm || filterType !== 'all' || filterTheme !== 'all' || filterFormat !== 'all' 
-                  ? "Tente ajustar os filtros ou termo de busca." 
-                  : "Faça upload do primeiro arquivo para esta pasta."}
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {currentFilesToDisplay.map((file) => (
-              <Card key={file.id} className="group hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-sm font-medium truncate">{file.name}</CardTitle>
-                      <CardDescription className="text-xs">
-                        {file.format} • {file.theme} • {(file.size / (1024*1024)).toFixed(2)} MB
-                      </CardDescription>
+        {/* Files grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {currentFilesToDisplay.map(file => (
+            <div key={file.id} className="bg-cinza-claro rounded-lg p-4 hover:bg-cinza-medio transition-colors">
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex-1">
+                  {file.thumbnailUrl ? (
+                    <img src={file.thumbnailUrl} alt={file.name} className="w-full h-32 object-cover rounded-md mb-2" />
+                  ) : (
+                    <div className="w-full h-32 bg-cinza-escuro rounded-md flex items-center justify-center mb-2">
+                      {getFileIcon(file.type)}
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => {
-                          setFileToEdit(file);
-                          setNewFile({
-                            name: file.name,
-                            type: file.type,
-                            format: file.format,
-                            theme: file.theme,
-                            description: file.description,
-                            fileObject: null
-                          });
-                        }}>
-                          <Edit3 className="w-4 h-4 mr-2" /> Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Download className="w-4 h-4 mr-2" /> Download
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => setFileToDelete(file)} className="text-red-600">
-                          <Trash2 className="w-4 h-4 mr-2" /> Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="aspect-video bg-gray-50 rounded-md flex items-center justify-center mb-3">
-                    {file.thumbnailUrl ? (
-                      <img src={file.thumbnailUrl} alt={file.name} className="w-full h-full object-cover rounded-md" />
-                    ) : (
-                      getFileIcon(file.type)
-                    )}
-                  </div>
-                  <p className="text-xs text-gray-600 line-clamp-2">{file.description}</p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Enviado em {new Date(file.uploadedAt).toLocaleDateString('pt-BR')}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
+                  )}
+                </div>
+                <div className="relative ml-2">
+                  <button className="p-1 hover:bg-cinza-escuro rounded">
+                    <MoreVertical className="w-4 h-4 text-gray-400" />
+                  </button>
+                </div>
+              </div>
+              <h3 className="font-medium text-branco text-sm mb-1 truncate">{file.name}</h3>
+              <p className="text-xs text-gray-400 mb-2 line-clamp-2">{file.description}</p>
+              <div className="flex justify-between items-center text-xs text-gray-500">
+                <span className="bg-azul-ciano/20 text-azul-ciano px-2 py-1 rounded">{file.theme}</span>
+                <span>{file.format}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {currentFilesToDisplay.length === 0 && (
+          <div className="text-center py-12">
+            <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-300 mb-2">Nenhum arquivo encontrado</h3>
+            <p className="text-gray-500">
+              {fileSearchTerm || filterType !== 'all' || filterTheme !== 'all' 
+                ? 'Tente ajustar os filtros de busca.' 
+                : 'Faça upload do primeiro arquivo para esta pasta.'}
+            </p>
           </div>
         )}
 
-        {/* Edit File Dialog */}
-        <Dialog open={!!fileToEdit} onOpenChange={(isOpen) => {if(!isOpen) {setFileToEdit(null); setNewFile({ name: '', type: 'image', format: 'PNG', theme: 'Geral', description: '', fileObject: null });}}}>
-          <DialogContent className="sm:max-w-[525px]">
-            <DialogHeader>
-              <DialogTitle>Editar Arquivo</DialogTitle>
-              <DialogDescription>Atualize as informações do arquivo.</DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <Input placeholder="Nome do arquivo" value={newFile.name} onChange={(e) => setNewFile({...newFile, name: e.target.value})} />
-              <Textarea placeholder="Descrição" value={newFile.description} onChange={(e) => setNewFile({...newFile, description: e.target.value})} />
-              <Select value={newFile.type} onValueChange={(value) => setNewFile({...newFile, type: value as ContentFile['type']})}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{FILE_TYPE_OPTIONS.map(opt => <SelectItem key={opt} value={opt}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</SelectItem>)}</SelectContent>
-              </Select>
-              <Select value={newFile.format} onValueChange={(value) => setNewFile({...newFile, format: value})}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{FILE_FORMAT_OPTIONS.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}</SelectContent>
-              </Select>
-              <Select value={newFile.theme} onValueChange={(value) => setNewFile({...newFile, theme: value})}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{FILE_THEME_OPTIONS.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}</SelectContent>
-              </Select>
+        {/* Upload File Dialog */}
+        {isUploadFileDialogOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-cinza-escuro p-6 rounded-lg max-w-md w-full mx-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-branco">Upload para "{selectedFolder.name}"</h3>
+                <button 
+                  onClick={() => setIsUploadFileDialogOpen(false)}
+                  className="text-gray-400 hover:text-branco"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileUpload} 
+                  className="w-full px-3 py-2 bg-cinza-claro text-branco rounded-md border border-gray-600 focus:border-azul-ciano focus:outline-none"
+                />
+                {newFile.fileObject && (
+                  <p className="text-sm text-gray-400">
+                    Selecionado: {newFile.fileObject.name} ({(newFile.fileObject.size / (1024*1024)).toFixed(2)} MB)
+                  </p>
+                )}
+                <input 
+                  placeholder="Título do Arquivo" 
+                  value={newFile.name} 
+                  onChange={(e) => setNewFile({...newFile, name: e.target.value})} 
+                  className="w-full px-3 py-2 bg-cinza-claro text-branco rounded-md border border-gray-600 focus:border-azul-ciano focus:outline-none"
+                />
+                <textarea 
+                  placeholder="Descrição do arquivo" 
+                  value={newFile.description} 
+                  onChange={(e) => setNewFile({...newFile, description: e.target.value})} 
+                  className="w-full px-3 py-2 bg-cinza-claro text-branco rounded-md border border-gray-600 focus:border-azul-ciano focus:outline-none h-20 resize-none"
+                />
+                <select 
+                  value={newFile.type} 
+                  onChange={(e) => setNewFile({...newFile, type: e.target.value as ContentFile['type']})}
+                  className="w-full px-3 py-2 bg-cinza-claro text-branco rounded-md border border-gray-600 focus:border-azul-ciano focus:outline-none"
+                >
+                  {FILE_TYPE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</option>)}
+                </select>
+                <select 
+                  value={newFile.format} 
+                  onChange={(e) => setNewFile({...newFile, format: e.target.value})}
+                  className="w-full px-3 py-2 bg-cinza-claro text-branco rounded-md border border-gray-600 focus:border-azul-ciano focus:outline-none"
+                >
+                  {FILE_FORMAT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+                <select 
+                  value={newFile.theme} 
+                  onChange={(e) => setNewFile({...newFile, theme: e.target.value})}
+                  className="w-full px-3 py-2 bg-cinza-claro text-branco rounded-md border border-gray-600 focus:border-azul-ciano focus:outline-none"
+                >
+                  {FILE_THEME_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+              </div>
+              <div className="flex gap-2 mt-6">
+                <button 
+                  onClick={() => setIsUploadFileDialogOpen(false)}
+                  className="flex-1 px-4 py-2 bg-cinza-claro text-branco rounded-md hover:bg-cinza-medio transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={handleCreateFile}
+                  className="flex-1 px-4 py-2 bg-azul-ciano text-branco rounded-md hover:bg-azul-ciano/80 transition-colors"
+                >
+                  Salvar Arquivo
+                </button>
+              </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setFileToEdit(null)}>Cancelar</Button>
-              <Button onClick={handleEditFile}>Salvar Alterações</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Delete File Dialog */}
-        <Dialog open={!!fileToDelete} onOpenChange={(isOpen) => {if(!isOpen) setFileToDelete(null);}}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Confirmar Exclusão</DialogTitle>
-              <DialogDescription>
-                Tem certeza que deseja excluir o arquivo "{fileToDelete?.name}"? Esta ação não pode ser desfeita.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setFileToDelete(null)}>Cancelar</Button>
-              <Button variant="destructive" onClick={handleDeleteFile}>Excluir</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          </div>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="bg-cinza-escuro text-branco p-6 rounded-lg">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h2 className="text-xl font-semibold">Gerenciamento de Conteúdo</h2>
-          <p className="text-sm text-gray-600">Organize e gerencie materiais de marketing</p>
+          <h2 className="text-2xl font-bold text-branco">Gerenciamento de Conteúdo</h2>
+          <p className="text-gray-400">Organize e gerencie materiais de marketing</p>
         </div>
-        <Dialog open={isNewFolderDialogOpen} onOpenChange={setIsNewFolderDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <FolderPlus className="mr-2 h-4 w-4" /> Nova Pasta
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Criar Nova Pasta</DialogTitle>
-              <DialogDescription>Digite o nome da nova pasta para organizar seus arquivos.</DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-              <Input placeholder="Nome da pasta" value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} />
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsNewFolderDialogOpen(false)}>Cancelar</Button>
-              <Button onClick={handleCreateFolder}>Criar Pasta</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <button
+          onClick={() => setIsNewFolderDialogOpen(true)}
+          className="flex items-center px-4 py-2 bg-azul-ciano text-branco rounded-md hover:bg-azul-ciano/80 transition-colors"
+        >
+          <FolderPlus className="mr-2 h-4 w-4" /> Nova Pasta
+        </button>
       </div>
 
       <div className="mb-4">
-        <Input 
+        <input 
           type="search" 
           placeholder="Buscar pastas..." 
           value={searchTerm} 
           onChange={(e) => setSearchTerm(e.target.value)} 
-          className="max-w-md"
+          className="w-full px-3 py-2 bg-cinza-claro text-branco rounded-md border border-gray-600 focus:border-azul-ciano focus:outline-none"
         />
       </div>
 
-      {filteredRootFolders.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Folder className="w-16 h-16 text-gray-300 mb-4" />
-            <p className="text-lg font-medium text-gray-500 mb-2">
-              {searchTerm ? "Nenhuma pasta encontrada" : "Nenhuma pasta criada"}
-            </p>
-            <p className="text-sm text-gray-400 text-center">
-              {searchTerm 
-                ? "Tente ajustar o termo de busca." 
-                : "Crie sua primeira pasta para organizar os materiais de marketing."}
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredRootFolders.map((folder) => (
-            <Card key={folder.id} className="group hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedFolder(folder)}>
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-sm font-medium truncate">{folder.name}</CardTitle>
-                    <CardDescription className="text-xs">
-                      {folder.files.length} arquivo{folder.files.length !== 1 ? 's' : ''}
-                    </CardDescription>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                      <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={(e) => {
-                        e.stopPropagation();
-                        setFolderToEdit(folder);
-                        setNewFolderName(folder.name);
-                      }}>
-                        <Edit3 className="w-4 h-4 mr-2" /> Renomear
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={(e) => {
-                        e.stopPropagation();
-                        setFolderToDelete(folder);
-                      }} className="text-red-600">
-                        <Trash2 className="w-4 h-4 mr-2" /> Excluir
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="aspect-square bg-gray-50 rounded-md flex items-center justify-center mb-3">
-                  <Folder className="w-12 h-12 text-gray-400" />
-                </div>
-                <p className="text-xs text-gray-400">
-                  Criada em {new Date(folder.createdAt).toLocaleDateString('pt-BR')}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {filteredRootFolders.map(folder => (
+          <div 
+            key={folder.id} 
+            onClick={() => setSelectedFolder(folder)}
+            className="bg-cinza-claro rounded-lg p-4 hover:bg-cinza-medio transition-colors cursor-pointer"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <Folder className="w-12 h-12 text-azul-ciano" />
+              <div className="relative">
+                <button className="p-1 hover:bg-cinza-escuro rounded">
+                  <MoreVertical className="w-4 h-4 text-gray-400" />
+                </button>
+              </div>
+            </div>
+            <h3 className="font-medium text-branco text-sm mb-1 truncate">{folder.name}</h3>
+            <p className="text-xs text-gray-400">{folder.files.length} arquivos</p>
+            <p className="text-xs text-gray-500">Criada em {new Date(folder.createdAt).toLocaleDateString('pt-BR')}</p>
+          </div>
+        ))}
+      </div>
+
+      {filteredRootFolders.length === 0 && (
+        <div className="text-center py-12">
+          <Folder className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-300 mb-2">Nenhuma pasta encontrada</h3>
+          <p className="text-gray-500">
+            {searchTerm ? 'Tente ajustar o termo de busca.' : 'Crie sua primeira pasta para organizar o conteúdo.'}
+          </p>
         </div>
       )}
 
-      {/* Rename Folder Dialog */}
-      <Dialog open={!!folderToEdit} onOpenChange={(isOpen) => {if(!isOpen) {setFolderToEdit(null); setNewFolderName('');}}}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Renomear Pasta</DialogTitle>
-            <DialogDescription>Digite o novo nome para a pasta "{folderToEdit?.name}".</DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Input placeholder="Novo nome da pasta" value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} />
+      {/* New Folder Dialog */}
+      {isNewFolderDialogOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-cinza-escuro p-6 rounded-lg max-w-md w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-branco">Nova Pasta</h3>
+              <button 
+                onClick={() => setIsNewFolderDialogOpen(false)}
+                className="text-gray-400 hover:text-branco"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <input 
+                placeholder="Nome da pasta" 
+                value={newFolderName} 
+                onChange={(e) => setNewFolderName(e.target.value)} 
+                className="w-full px-3 py-2 bg-cinza-claro text-branco rounded-md border border-gray-600 focus:border-azul-ciano focus:outline-none"
+                onKeyPress={(e) => e.key === 'Enter' && handleCreateFolder()}
+              />
+            </div>
+            <div className="flex gap-2 mt-6">
+              <button 
+                onClick={() => setIsNewFolderDialogOpen(false)}
+                className="flex-1 px-4 py-2 bg-cinza-claro text-branco rounded-md hover:bg-cinza-medio transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleCreateFolder}
+                className="flex-1 px-4 py-2 bg-azul-ciano text-branco rounded-md hover:bg-azul-ciano/80 transition-colors"
+              >
+                Criar Pasta
+              </button>
+            </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setFolderToEdit(null)}>Cancelar</Button>
-            <Button onClick={handleRenameFolder}>Renomear</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Folder Dialog */}
-      <Dialog open={!!folderToDelete} onOpenChange={(isOpen) => {if(!isOpen) setFolderToDelete(null);}}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmar Exclusão</DialogTitle>
-            <DialogDescription>
-              Tem certeza que deseja excluir a pasta "{folderToDelete?.name}" e todos os seus arquivos? Esta ação não pode ser desfeita.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setFolderToDelete(null)}>Cancelar</Button>
-            <Button variant="destructive" onClick={handleDeleteFolder}>Excluir</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </div>
   );
 };
