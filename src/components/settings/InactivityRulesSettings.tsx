@@ -188,11 +188,20 @@ const InactivityRulesSettings: React.FC = () => {
       {/* Header com indicador de versão */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl lg:text-2xl font-semibold text-branco font-sora">
-          🚀 Configurar Regras de Inatividade de Afiliados (VERSÃO COMPLETA)
+          🚀 Configurar Regras de Inatividade de Afiliados (VERSÃO COMPLETA - BUILD 2025-06-02)
         </h2>
         <div className="bg-green-500/20 border border-green-500 rounded-lg px-3 py-1">
-          <span className="text-green-300 text-sm font-medium">✅ Versão Atualizada</span>
+          <span className="text-green-300 text-sm font-medium">✅ Versão Atualizada - COMMIT 024b8dcc</span>
         </div>
+      </div>
+
+      <div className="bg-blue-500/20 border border-blue-500 rounded-lg p-4 mb-6">
+        <p className="text-blue-300 font-medium">
+          🔥 VERSÃO DEFINITIVA IMPLEMENTADA - Se você está vendo este texto, a versão correta está funcionando!
+        </p>
+        <p className="text-blue-200 text-sm mt-2">
+          Esta versão inclui: Período editável, Sistema de reativação completo, Múltiplas categorias, Intervalos configuráveis
+        </p>
       </div>
 
       <p className="text-gray-400 mb-6">
