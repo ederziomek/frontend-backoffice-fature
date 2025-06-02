@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Edit3, Save, X, RotateCcw, Clock, Target } from 'lucide-react';
+import { Plus, Trash2, Edit3, Save, X, Clock, Target } from 'lucide-react';
 
 interface ReductionInterval {
   id: string;
@@ -54,8 +54,6 @@ const defaultReactivationRules: { [key: string]: ReactivationRule } = {
 };
 
 const InactivityRulesSettings: React.FC = () => {
-  // FORÇA SEMPRE A VERSÃO COMPLETA - NUNCA A SIMPLIFICADA
-  const [useAdvancedMode] = useState(true); // Sempre true para garantir versão completa
   const [activeTab, setActiveTab] = useState<'rules' | 'categories'>('rules');
   const [inactivityRules, setInactivityRules] = useState<InactivityRule[]>([
     {
@@ -183,21 +181,6 @@ const InactivityRulesSettings: React.FC = () => {
     console.log('Saving Categories:', categories);
     alert('Regras de Inatividade salvas com sucesso!');
   };
-
-  // VERSÃO SIMPLIFICADA (NUNCA SERÁ USADA, MAS MANTIDA COMO BACKUP)
-  const renderSimplifiedVersion = () => (
-    <div className="p-1 md:p-6 bg-cinza-claro rounded-lg shadow-md min-h-[600px]">
-      <h2 className="text-xl lg:text-2xl font-semibold text-branco mb-6 font-sora">
-        ⚠️ VERSÃO SIMPLIFICADA DETECTADA - ISSO NÃO DEVERIA APARECER
-      </h2>
-      <div className="bg-red-500/20 border border-red-500 rounded-lg p-4 mb-6">
-        <p className="text-red-300">
-          Se você está vendo esta mensagem, há um problema com o deploy. 
-          A versão completa deveria estar sendo exibida.
-        </p>
-      </div>
-    </div>
-  );
 
   // SEMPRE RETORNA A VERSÃO COMPLETA
   return (
