@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { SlidersHorizontal, Users, TrendingUp, Award, ShieldCheck, Box, Banknote, UserCog, DollarSign } from 'lucide-react';
+import { SlidersHorizontal, Users, TrendingUp, Award, ShieldCheck, Box, Banknote, UserCog, DollarSign, Mail, Calculator, Shield, Link2 } from 'lucide-react';
 
 // Import actual components
 import AffiliateCategoriesLevelsSettings from '../../components/settings/AffiliateCategoriesLevelsSettings';
@@ -12,6 +12,10 @@ import InactivityRulesSettings from '../../components/settings/InactivityRulesSe
 import RewardChestsSettings from '../../components/settings/RewardChestsSettings';
 import CommissionSafeSettings from '../../components/settings/CommissionSafeSettings';
 import RevenueShareSettings from '../../components/settings/RevenueShareSettings';
+import NotificationTemplatesSettings from '../../components/settings/NotificationTemplatesSettings';
+import CommissionSimulationSettings from '../../components/settings/CommissionSimulationSettings';
+import AuditLogsSettings from '../../components/settings/AuditLogsSettings';
+import CustomLinksSettings from '../../components/settings/CustomLinksSettings';
 
 const settingsSections = [
   { path: 'categories-levels', label: 'Categorias e Levels', icon: SlidersHorizontal, component: AffiliateCategoriesLevelsSettings },
@@ -21,6 +25,10 @@ const settingsSections = [
   { path: 'financial', label: 'Financeiro Global', icon: Banknote, component: FinancialSettings },
   { path: 'revenue-share', label: 'Revenue Share', icon: DollarSign, component: RevenueShareSettings },
   { path: 'inactivity-rules', label: 'Regras de Inatividade', icon: UserCog, component: InactivityRulesSettings },
+  { path: 'notification-templates', label: 'Templates de Notificação', icon: Mail, component: NotificationTemplatesSettings },
+  { path: 'commission-simulation', label: 'Simulação de Comissões', icon: Calculator, component: CommissionSimulationSettings },
+  { path: 'audit-logs', label: 'Auditoria e Logs', icon: Shield, component: AuditLogsSettings },
+  { path: 'custom-links', label: 'Links Personalizados', icon: Link2, component: CustomLinksSettings },
   { path: 'reward-chests', label: 'Baús de Recompensa', icon: Box, component: RewardChestsSettings },
   { path: 'commission-safe', label: 'Cofre de Comissões', icon: ShieldCheck, component: CommissionSafeSettings },
 ];
