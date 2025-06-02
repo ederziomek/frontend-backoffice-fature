@@ -57,25 +57,25 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     {
       href: '/#/users',
       icon: <Users className="w-5 h-5 mr-3 text-azul-ciano" />,
-      label: 'Gerenciar Usuários',
+      label: 'Usuários',
       activeColor: 'text-branco',
     },
     {
       href: '/#/affiliates',
       icon: <UserSquare className="w-5 h-5 mr-3 text-azul-ciano" />,
-      label: 'Gerenciar Afiliados',
+      label: 'Afiliados',
       activeColor: 'text-branco',
     },
     {
       href: '/#/settings',
       icon: <Settings className="w-5 h-5 mr-3 text-azul-ciano" />,
-      label: 'Gerenciar Configurações',
+      label: 'Configurações',
       activeColor: 'text-branco',
     },
     {
       href: '/#/financial',
       icon: <DollarSign className="w-5 h-5 mr-3 text-azul-ciano" />,
-      label: 'Gerenciamento Financeiro',
+      label: 'Financeiro',
       activeColor: 'text-branco',
     },
     {
@@ -87,7 +87,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     {
       href: '/#/content',
       icon: <FolderKanban className="w-5 h-5 mr-3 text-azul-ciano" />,
-      label: 'Gerenciamento de Conteúdo',
+      label: 'Marketing',
       activeColor: 'text-branco',
     },
   ];
