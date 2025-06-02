@@ -49,7 +49,7 @@ function App() {
               <Route path="/settings/*" element={<SettingsPage />} /> {/* Catch-all for settings sub-routes */}
               <Route path="/financial/*" element={<FinancialPage />} /> {/* Catch-all for financial sub-routes */}
               <Route path="/security/*" element={<SecurityPage />} /> {/* Catch-all for security sub-routes */}
-              <Route path="/content" element={<ContentPage />} /> {/* Add route for Content Management */}
+              <Route path="/content/*" element={<ContentPage />} /> {/* Add route for Content Management */}
               {/* Add other routes here as needed */}
             </Routes>
           </main>
