@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { FolderPlus, Folder, FileText, FileVideo, ImageIcon, UploadCloud, MoreVertical, Trash2, Edit3, Download, X } from 'lucide-react';
+import { FolderPlus, Folder, FileText, FileVideo, ImageIcon, UploadCloud, MoreVertical, X } from 'lucide-react';
 
 // Mock data types
 interface ContentFile {
@@ -99,15 +99,10 @@ const ContentManagement: React.FC = () => {
   // Dialog states
   const [isNewFolderDialogOpen, setIsNewFolderDialogOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
-  const [folderToEdit, setFolderToEdit] = useState<ContentFolder | null>(null);
-  const [folderToDelete, setFolderToDelete] = useState<ContentFolder | null>(null);
 
   const [isUploadFileDialogOpen, setIsUploadFileDialogOpen] = useState(false);
   const [newFile, setNewFile] = useState<{ name: string; type: ContentFile['type']; format: string; theme: string; description: string; fileObject: File | null }>({ name: '', type: 'image', format: 'PNG', theme: 'Geral', description: '', fileObject: null });
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const [fileToEdit, setFileToEdit] = useState<ContentFile | null>(null);
-  const [fileToDelete, setFileToDelete] = useState<ContentFile | null>(null);
 
   // Filter and Sort states for files
   const [filterType, setFilterType] = useState<string>('all');
@@ -134,27 +129,6 @@ const ContentManagement: React.FC = () => {
     setNewFolderName("");
     setIsNewFolderDialogOpen(false);
     showToast("Sucesso", `Pasta "${newFolderName}" criada.`);
-  };
-
-  const handleRenameFolder = () => {
-    if (!folderToEdit || newFolderName.trim() === "") {
-      showToast("Erro", "Selecione uma pasta e forneça um novo nome.", 'error');
-      return;
-    }
-    setFolders(folders.map(f => f.id === folderToEdit.id ? { ...f, name: newFolderName } : f));
-    showToast("Sucesso", `Pasta "${folderToEdit.name}" renomeada para "${newFolderName}".`);
-    setFolderToEdit(null);
-    setNewFolderName("");
-  };
-
-  const handleDeleteFolder = () => {
-    if (!folderToDelete) return;
-    setFolders(folders.filter(f => f.id !== folderToDelete.id));
-    showToast("Sucesso", `Pasta "${folderToDelete.name}" excluída.`);
-    setFolderToDelete(null);
-    if (selectedFolder?.id === folderToDelete.id) {
-        setSelectedFolder(null);
-    }
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
