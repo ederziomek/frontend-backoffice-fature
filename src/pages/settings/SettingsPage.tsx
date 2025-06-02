@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { SlidersHorizontal, Users, TrendingUp, Award, ShieldCheck, Box, Banknote, UserCog } from 'lucide-react';
+import { SlidersHorizontal, Users, TrendingUp, Award, ShieldCheck, Box, Banknote, UserCog, DollarSign } from 'lucide-react';
 
 // Import actual components
 import AffiliateCategoriesLevelsSettings from '../../components/settings/AffiliateCategoriesLevelsSettings';
@@ -11,6 +11,7 @@ import FinancialSettings from '../../components/settings/FinancialSettings';
 import InactivityRulesSettings from '../../components/settings/InactivityRulesSettings';
 import RewardChestsSettings from '../../components/settings/RewardChestsSettings';
 import CommissionSafeSettings from '../../components/settings/CommissionSafeSettings';
+import RevenueShareSettings from '../../components/settings/RevenueShareSettings';
 
 const settingsSections = [
   { path: 'categories-levels', label: 'Categorias e Levels', icon: SlidersHorizontal, component: AffiliateCategoriesLevelsSettings },
@@ -18,6 +19,7 @@ const settingsSections = [
   { path: 'daily-sequence', label: 'Sequência Diária', icon: Award, component: DailySequenceSettings },
   { path: 'rankings', label: 'Rankings', icon: TrendingUp, component: RankingsSettings },
   { path: 'financial', label: 'Financeiro Global', icon: Banknote, component: FinancialSettings },
+  { path: 'revenue-share', label: 'Revenue Share', icon: DollarSign, component: RevenueShareSettings },
   { path: 'inactivity-rules', label: 'Regras de Inatividade', icon: UserCog, component: InactivityRulesSettings },
   { path: 'reward-chests', label: 'Baús de Recompensa', icon: Box, component: RewardChestsSettings },
   { path: 'commission-safe', label: 'Cofre de Comissões', icon: ShieldCheck, component: CommissionSafeSettings },
