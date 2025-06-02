@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Gift, Target, Users, Settings, Save, RotateCcw, Plus, Trash2, AlertCircle, CheckCircle, TrendingUp, Calendar, Award } from 'lucide-react';
+import { Gift, Target, Users, Settings, Save, RotateCcw, Plus, Trash2, AlertCircle, CheckCircle, TrendingUp, Award } from 'lucide-react';
 
 interface RewardChestRule {
   id: string;

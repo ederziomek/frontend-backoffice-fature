@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from "react-router-dom";
 import { mockAffiliates, Affiliate } from "../../components/affiliates/AffiliateTable"; // Assuming mockAffiliates is exported
-import { Edit2, ArrowLeft, Clock, DollarSign, Users, TrendingUp, FileText, ChevronDown, ChevronUp, Download, Filter, Eye, BarChart3, Network, Calendar, Search } from 'lucide-react';
+import { Edit2, ArrowLeft, Clock, DollarSign, Users, TrendingUp, FileText, ChevronDown, ChevronUp, Download, Filter, Eye, BarChart3, Network, Search } from 'lucide-react';
 
 // Mock data for downline and history - in a real app, this would be fetched
 const mockDownline = {

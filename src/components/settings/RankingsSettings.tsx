@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trophy, Calendar, Target, Settings, Save, RotateCcw, Plus, Trash2, AlertCircle, CheckCircle, TrendingUp, Users, Award, Eye, Edit } from 'lucide-react';
+import { Trophy, Save, RotateCcw, Plus, Trash2, AlertCircle, CheckCircle, TrendingUp, Eye, Edit } from 'lucide-react';
 
 interface RankingReward {
   position: number;
@@ -301,17 +301,6 @@ const RankingsSettings: React.FC = () => {
       case 'chest': return 'Baú';
       case 'points': return 'Pontos';
       default: return 'Dinheiro (R$)';
-    }
-  };
-
-  const getChestColor = (chestType: string) => {
-    switch (chestType) {
-      case 'bronze': return 'text-orange-400';
-      case 'silver': return 'text-gray-300';
-      case 'gold': return 'text-yellow-400';
-      case 'platinum': return 'text-blue-300';
-      case 'diamond': return 'text-purple-300';
-      default: return 'text-gray-400';
     }
   };
 
@@ -842,7 +831,7 @@ const RankingsSettings: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {mockRankingData.slice(0, Math.max(selectedConfig.rewards.length, 5)).map((row, index) => {
+                {mockRankingData.slice(0, Math.max(selectedConfig.rewards.length, 5)).map((row, _) => {
                   const reward = selectedConfig.rewards.find(r => r.position === row.position);
                   const rewardText = reward ? 
                     (reward.rewardType === 'cash' ? `R$ ${reward.rewardValue}` :
