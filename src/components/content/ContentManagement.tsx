@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FolderPlus, Folder, FileText, FileVideo, ImageIcon, UploadCloud, MoreVertical, Trash2, Edit3, Download, Eye, ArrowUpDown } from 'lucide-react';
+import { FolderPlus, Folder, FileText, FileVideo, ImageIcon, UploadCloud, MoreVertical, Trash2, Edit3, Download } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 
 // Mock data types
@@ -121,7 +121,7 @@ const ContentManagement: React.FC = () => {
   // Filter and Sort states for files
   const [filterType, setFilterType] = useState<string>('all');
   const [filterTheme, setFilterTheme] = useState<string>('all');
-  const [filterFormat, setFilterFormat] = useState<string>('all');
+  const [filterFormat] = useState<string>('all');
   const [sortOrder, setSortOrder] = useState<string>('uploadedAt_desc');
 
   const handleCreateFolder = () => {
