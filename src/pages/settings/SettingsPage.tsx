@@ -50,16 +50,16 @@ const SettingsPage: React.FC = () => {
 
         <div className="flex-1">
           <Routes>
-            <Route path="/" element={<Navigate to="/settings/categories-levels" replace />} />
-            <Route path="/categories-levels" element={<CategoriesLevelsManager />} />
-            <Route path="/cpa" element={<CpaSettings />} />
-            <Route path="/daily-sequence" element={<DailySequenceSettings />} />
-            <Route path="/rankings" element={<RankingsSettings />} />
-            <Route path="/financial" element={<FinancialSettings />} />
-            <Route path="/revenue-share" element={<RevenueShareSettings />} />
-            <Route path="/inactivity-rules" element={<InactivityRulesSettings />} />
-            <Route path="/reward-chests" element={<RewardChestsSettings />} />
-            <Route path="/commission-safe" element={<CommissionSafeSettings />} />
+            <Route path="/" element={<Navigate to="categories-levels" replace />} />
+            <Route path="categories-levels" element={<CategoriesLevelsManager />} />
+            <Route path="cpa" element={<CpaSettings />} />
+            <Route path="daily-sequence" element={<DailySequenceSettings />} />
+            <Route path="rankings" element={<RankingsSettings />} />
+            <Route path="financial" element={<FinancialSettings />} />
+            <Route path="revenue-share" element={<RevenueShareSettings />} />
+            <Route path="inactivity-rules" element={<InactivityRulesSettings />} />
+            <Route path="reward-chests" element={<RewardChestsSettings />} />
+            <Route path="commission-safe" element={<CommissionSafeSettings />} />
           </Routes>
         </div>
       </div>

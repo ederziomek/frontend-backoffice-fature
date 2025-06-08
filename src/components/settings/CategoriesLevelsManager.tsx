@@ -46,28 +46,31 @@ const getCompleteCategories = (): Category[] => [
     ]
   },
   {
-    id: 'iniciante',
-    name: 'Iniciante',
+    id: 'i    name: 'Iniciante',
     description: 'Categoria para afiliados com primeiras indicações (11-30 indicações)',
     levels: [
       {
         id: 'iniciante_1',
         name: 'Level 1',
         requirements: { minReferrals: 11, maxReferrals: 20 },
-        benefits: { revLevel1: 12.00, revLevels2to5: 3.00, levelUpBonus: 50 } // R$ 50 fixo por level
+        benefits: { 
+          revLevel1: 12.00, 
+          revLevel2: 12.00, 
+          levelUpBonus: 50 // R$ 50 fixo por level (10 indicações)
+        }
       },
       {
         id: 'iniciante_2',
         name: 'Level 2',
         requirements: { minReferrals: 21, maxReferrals: 30 },
-        benefits: { revLevel1: 12.00, revLevels2to5: 3.00, levelUpBonus: 50 } // R$ 50 fixo por level
+        benefits: { 
+          revLevel1: 12.00, 
+          revLevel2: 12.00, 
+          levelUpBonus: 50 // R$ 50 fixo por level (10 indicações)
+        }
       }
     ]
-  },
-  {
-    id: 'afiliado',
-    name: 'Afiliado',
-    description: 'Categoria intermediária com múltiplos levels (31-100 indicações)',
+  },Categoria intermediária com múltiplos levels (31-100 indicações)',
     levels: [
       {
         id: 'afiliado_1',
@@ -146,7 +149,7 @@ function generateProfessionalLevels(): Level[] {
     const minReferrals = 101 + (i - 1) * 10;
     const maxReferrals = 100 + i * 10;
     const revLevel1 = 18.00 + (i - 1) * 0.067;
-    const levelUpBonus = 50; // R$ 50 fixo por level
+    const levelUpBonus = 50; // R$ 50 fixo por level (10 indicações)
     
     levels.push({
       id: `profissional_${i}`,
@@ -169,7 +172,7 @@ function generateExpertLevels(): Level[] {
     const minReferrals = 1001 + (i - 1) * 100;
     const maxReferrals = 1000 + i * 100;
     const revLevel1 = 24.00 + (i - 1) * 0.067;
-    const levelUpBonus = 50; // R$ 50 fixo por level
+    const levelUpBonus = 500; // R$ 500 fixo por level (100 indicações)
     
     levels.push({
       id: `expert_${i}`,
@@ -192,7 +195,7 @@ function generateMestreLevels(): Level[] {
     const minReferrals = 10001 + (i - 1) * 1000;
     const maxReferrals = 10000 + i * 1000;
     const revLevel1 = 30.00 + (i - 1) * 0.067;
-    const levelUpBonus = 50; // R$ 50 fixo por level
+    const levelUpBonus = 5000; // R$ 5.000 fixo por level (1000 indicações)
     
     levels.push({
       id: `mestre_${i}`,
@@ -209,10 +212,10 @@ function generateMestreLevels(): Level[] {
 function generateLendaLevels(): Level[] {
   const levels: Level[] = [];
   for (let i = 1; i <= 90; i++) {
-    const minReferrals = 100001 + (i - 1) * 10000;
-    const maxReferrals = i === 90 ? 999999999 : 100000 + i * 10000;
+    const minReferrals = 100001 + (i - 1) * 1000; // Alterado para 1000 indicações por level
+    const maxReferrals = i === 90 ? 999999999 : 100000 + i * 1000;
     const revLevel1 = 36.00 + (i - 1) * 0.067;
-    const levelUpBonus = 50; // R$ 50 fixo por levelid: `lenda_${i}`,
+    const levelUpBonus = 5000; // R$ 5.000 fixo por level (1000 indicações)id: `lenda_${i}`,
       name: `Level ${i}`,
       requirements: { minReferrals, maxReferrals },
       benefits: { 
