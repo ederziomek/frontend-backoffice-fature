@@ -230,7 +230,7 @@ function generateLendaLevels(): Level[] {
   return levels;
 }
 
-const AffiliateCategoriesLevelsSettings: React.FC = () => {
+const CategoriesLevelsManager: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('jogador');
   const [expandedLevels, setExpandedLevels] = useState<Set<string>>(new Set());
@@ -605,5 +605,5 @@ const AffiliateCategoriesLevelsSettings: React.FC = () => {
   );
 };
 
-export default AffiliateCategoriesLevelsSettings;
+export default CategoriesLevelsManager;
 

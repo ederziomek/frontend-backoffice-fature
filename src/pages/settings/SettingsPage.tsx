@@ -3,7 +3,7 @@ import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { SlidersHorizontal, Users, TrendingUp, Award, ShieldCheck, Box, Banknote, UserCog, DollarSign } from 'lucide-react';
 
 // Import actual components
-import AffiliateCategoriesLevelsSettings from '../../components/settings/AffiliateCategoriesLevelsSettings';
+import CategoriesLevelsManager from '../../components/settings/CategoriesLevelsManager';
 import CpaSettings from '../../components/settings/CpaSettings';
 import DailySequenceSettings from '../../components/settings/DailySequenceSettings';
 import RankingsSettings from '../../components/settings/RankingsSettings';
@@ -14,7 +14,7 @@ import CommissionSafeSettings from '../../components/settings/CommissionSafeSett
 import RevenueShareSettings from '../../components/settings/RevenueShareSettings';
 
 const settingsSections = [
-  { path: 'categories-levels', label: 'Categorias e Levels', icon: SlidersHorizontal, component: AffiliateCategoriesLevelsSettings },
+  { path: 'categories-levels', label: 'Categorias e Levels', icon: SlidersHorizontal, component: CategoriesLevelsManager },
   { path: 'cpa', label: 'CPA', icon: Users, component: CpaSettings },
   { path: 'daily-sequence', label: 'Sequência Diária', icon: Award, component: DailySequenceSettings },
   { path: 'rankings', label: 'Rankings', icon: TrendingUp, component: RankingsSettings },
