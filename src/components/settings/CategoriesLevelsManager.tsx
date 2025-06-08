@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, Plus, Trash2, Save, RotateCcw } from 'lucide-react';
 
-// Componente para gerenciamento de categorias e levels de afiliados - v2.0
+// VERSÃO 3.0 - COMPONENTE COMPLETAMENTE NOVO PARA FORÇAR ATUALIZAÇÃO
+// Componente para gerenciamento de categorias e levels de afiliados - v3.0
 interface Level {
   id: string;
   name: string;
