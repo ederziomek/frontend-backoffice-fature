@@ -46,7 +46,8 @@ const getCompleteCategories = (): Category[] => [
     ]
   },
   {
-    id: 'i    name: 'Iniciante',
+    id: 'iniciante',
+    name: 'Iniciante',
     description: 'Categoria para afiliados com primeiras indicações (11-30 indicações)',
     levels: [
       {
@@ -55,7 +56,7 @@ const getCompleteCategories = (): Category[] => [
         requirements: { minReferrals: 11, maxReferrals: 20 },
         benefits: { 
           revLevel1: 12.00, 
-          revLevel2: 12.00, 
+          revLevels2to5: 12.00, 
           levelUpBonus: 50 // R$ 50 fixo por level (10 indicações)
         }
       },
@@ -65,12 +66,16 @@ const getCompleteCategories = (): Category[] => [
         requirements: { minReferrals: 21, maxReferrals: 30 },
         benefits: { 
           revLevel1: 12.00, 
-          revLevel2: 12.00, 
+          revLevels2to5: 12.00, 
           levelUpBonus: 50 // R$ 50 fixo por level (10 indicações)
         }
       }
     ]
-  },Categoria intermediária com múltiplos levels (31-100 indicações)',
+  },
+  {
+    id: 'afiliado',
+    name: 'Afiliado',
+    description: 'Categoria intermediária com múltiplos levels (31-100 indicações)',
     levels: [
       {
         id: 'afiliado_1',
@@ -142,7 +147,7 @@ const getCompleteCategories = (): Category[] => [
   }
 ];
 
-// Função para gerar levels da categ// Função para gerar levels da categoria Profissional
+// Função para gerar levels da categoria Profissional
 function generateProfessionalLevels(): Level[] {
   const levels: Level[] = [];
   for (let i = 1; i <= 90; i++) {
@@ -208,14 +213,19 @@ function generateMestreLevels(): Level[] {
       }
     });
   }
-  r// Função para gerar levels da categoria Lenda
+  return levels;
+}
+
+// Função para gerar levels da categoria Lenda
 function generateLendaLevels(): Level[] {
   const levels: Level[] = [];
   for (let i = 1; i <= 90; i++) {
     const minReferrals = 100001 + (i - 1) * 1000; // Alterado para 1000 indicações por level
     const maxReferrals = i === 90 ? 999999999 : 100000 + i * 1000;
-    const revLevel1 = 36.00 + (i - 1) * 0.067;
-    const levelUpBonus = 5000; // R$ 5.000 fixo por level (1000 indicações)id: `lenda_${i}`,
+    const levelUpBonus = 5000; // R$ 5.000 fixo por level (1000 indicações)
+    
+    levels.push({
+      id: `lenda_${i}`,
       name: `Level ${i}`,
       requirements: { minReferrals, maxReferrals },
       benefits: { 
@@ -443,33 +453,33 @@ const CategoriesLevelsManager: React.FC = () => {
               const categoryIndex = categories.findIndex(cat => cat.id === selectedCategory);
               const actualLevelIndex = startIndex + levelIndex;
               const isExpanded = expandedLevels.has(level.id);
-              
+
               return (
-                <div key={level.id} className="border border-gray-700 rounded-lg bg-gray-800/30">
-                  {/* Cabeçalho Compacto */}
+                <div key={level.id} className="bg-gray-800 rounded-lg border border-gray-700">
+                  {/* Header Compacto */}
                   <div 
-                    className="p-3 cursor-pointer hover:bg-gray-700/30 transition-colors"
+                    className="p-4 cursor-pointer hover:bg-gray-750 transition-colors"
                     onClick={() => toggleLevelExpansion(level.id)}
                   >
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
                           {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                          <h4 className="text-lg font-medium text-branco">{level.name}</h4>
+                          <span className="font-semibold text-azul-ciano">{level.name}</span>
                         </div>
                         <div className="text-sm text-gray-400">
                           {level.requirements.minReferrals} - {level.requirements.maxReferrals} indicações
                         </div>
-                        <div className="text-sm text-azul-ciano">
-                          Rev: {level.benefits.revLevel1}% | Bônus: R$ {level.benefits.levelUpBonus}
+                        <div className="text-sm text-gray-400">
+                          Rev: {level.benefits.revLevel1}% | Bonus: R$ {level.benefits.levelUpBonus}
                         </div>
                       </div>
-                      <button 
+                      <button
                         onClick={(e) => {
                           e.stopPropagation();
                           removeLevel(categoryIndex, actualLevelIndex);
                         }}
-                        className="text-red-500 hover:text-red-400 p-1 rounded hover:bg-red-500/10 transition-colors"
+                        className="text-red-400 hover:text-red-300 p-1"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -478,78 +488,65 @@ const CategoriesLevelsManager: React.FC = () => {
 
                   {/* Detalhes Expandidos */}
                   {isExpanded && (
-                    <div className="p-4 border-t border-gray-700">
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="px-4 pb-4 border-t border-gray-700">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                         {/* Requisitos */}
                         <div>
-                          <h5 className="font-medium text-gray-300 mb-3">Requisitos</h5>
+                          <h4 className="text-sm font-semibold text-gray-300 mb-3">Requisitos</h4>
                           <div className="space-y-3">
                             <div>
-                              <label className="block text-sm text-gray-400 mb-1">Indicações Mínimas:</label>
-                              <input 
-                                type="number" 
+                              <label className="block text-xs text-gray-400 mb-1">Mín. Indicações</label>
+                              <input
+                                type="number"
                                 value={level.requirements.minReferrals}
                                 onChange={(e) => handleLevelFieldChange(categoryIndex, actualLevelIndex, 'requirements', 'minReferrals', e.target.value)}
-                                className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-azul-ciano outline-none text-white"
+                                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white"
                               />
                             </div>
                             <div>
-                              <label className="block text-sm text-gray-400 mb-1">Indicações Máximas:</label>
-                              <input 
-                                type="number" 
+                              <label className="block text-xs text-gray-400 mb-1">Máx. Indicações</label>
+                              <input
+                                type="number"
                                 value={level.requirements.maxReferrals}
                                 onChange={(e) => handleLevelFieldChange(categoryIndex, actualLevelIndex, 'requirements', 'maxReferrals', e.target.value)}
-                                className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-azul-ciano outline-none text-white"
+                                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white"
                               />
                             </div>
                           </div>
                         </div>
 
-                        {/* Comissões RevShare */}
+                        {/* Benefícios */}
                         <div>
-                          <h5 className="font-medium text-gray-300 mb-3">Comissões RevShare (%)</h5>
+                          <h4 className="text-sm font-semibold text-gray-300 mb-3">Benefícios</h4>
                           <div className="space-y-3">
                             <div>
-                              <label className="block text-sm text-gray-400 mb-1">RevShare Nível 1:</label>
-                              <input 
-                                type="number" 
+                              <label className="block text-xs text-gray-400 mb-1">RevShare Level 1 (%)</label>
+                              <input
+                                type="number"
+                                step="0.01"
                                 value={level.benefits.revLevel1}
                                 onChange={(e) => handleLevelFieldChange(categoryIndex, actualLevelIndex, 'benefits', 'revLevel1', e.target.value)}
-                                className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-azul-ciano outline-none text-white"
-                                step="0.01"
+                                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white"
                               />
                             </div>
                             <div>
-                              <label className="block text-sm text-gray-400 mb-1">RevShare Níveis 2-5 (cada):</label>
-                              <input 
-                                type="number" 
+                              <label className="block text-xs text-gray-400 mb-1">RevShare Levels 2-5 (%)</label>
+                              <input
+                                type="number"
+                                step="0.01"
                                 value={level.benefits.revLevels2to5}
                                 onChange={(e) => handleLevelFieldChange(categoryIndex, actualLevelIndex, 'benefits', 'revLevels2to5', e.target.value)}
-                                className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-azul-ciano outline-none text-white"
-                                step="0.01"
+                                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white"
                               />
                             </div>
-                          </div>
-                        </div>
-
-                        {/* Bônus */}
-                        <div>
-                          <h5 className="font-medium text-gray-300 mb-3">Bônus</h5>
-                          <div className="space-y-3">
                             <div>
-                              <label className="block text-sm text-gray-400 mb-1">Bônus Level Up (R$):</label>
-                              <input 
-                                type="number" 
+                              <label className="block text-xs text-gray-400 mb-1">Bônus Level Up (R$)</label>
+                              <input
+                                type="number"
                                 value={level.benefits.levelUpBonus}
                                 onChange={(e) => handleLevelFieldChange(categoryIndex, actualLevelIndex, 'benefits', 'levelUpBonus', e.target.value)}
-                                className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-azul-ciano outline-none text-white"
-                                step="0.01"
+                                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white"
                               />
-                            </div>
-                            <div className="text-sm text-gray-400">
-                              <strong>CPA Estimado:</strong><br/>
-                              Nível 1: R$ {(35 * level.benefits.revLevel1 / 100).toFixed(2)}<br/>
-                              Níveis 2-5: R$ {(25 * level.benefits.revLevels2to5 / 100).toFixed(2)} cada
                             </div>
                           </div>
                         </div>
@@ -567,29 +564,41 @@ const CategoriesLevelsManager: React.FC = () => {
               <button
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-1 text-sm bg-gray-700 text-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
+                className="px-3 py-2 text-sm bg-gray-700 text-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
               >
                 Anterior
               </button>
               
-              <span className="text-sm text-gray-400">
-                Página {currentPage} de {totalPages} ({totalLevels} levels total)
-              </span>
+              <div className="flex gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-2 text-sm rounded ${
+                      currentPage === page
+                        ? 'bg-azul-ciano text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
               
               <button
                 onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
-                className="px-3 py-1 text-sm bg-gray-700 text-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
+                className="px-3 py-2 text-sm bg-gray-700 text-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
               >
-                Próxima
+                Próximo
               </button>
             </div>
           )}
         </div>
       )}
 
-      {/* Botões de Ação */}
-      <div className="flex justify-end gap-3">
+      {/* Botão de Salvar */}
+      <div className="flex justify-center mt-8">
         <button 
           onClick={handleSave}
           disabled={isLoading}
