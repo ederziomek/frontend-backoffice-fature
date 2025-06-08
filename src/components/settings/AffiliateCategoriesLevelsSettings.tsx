@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ChevronDown, ChevronUp, Plus, Trash2, Save, RotateCcw } from 'lucide-react';
 
 interface Level {
   id: string;
@@ -231,8 +232,11 @@ function generateLendaLevels(): Level[] {
 const AffiliateCategoriesLevelsSettings: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('jogador');
+  const [expandedLevels, setExpandedLevels] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+  const [currentPage, setCurrentPage] = useState(1);
+  const levelsPerPage = 10;
 
   // Inicializar com configurações completas
   useEffect(() => {
@@ -278,10 +282,22 @@ const AffiliateCategoriesLevelsSettings: React.FC = () => {
     setCategories(newCategories);
   };
 
+  const toggleLevelExpansion = (levelId: string) => {
+    const newExpanded = new Set(expandedLevels);
+    if (newExpanded.has(levelId)) {
+      newExpanded.delete(levelId);
+    } else {
+      newExpanded.add(levelId);
+    }
+    setExpandedLevels(newExpanded);
+  };
+
   const resetToDefaults = () => {
     if (confirm('Tem certeza que deseja restaurar todas as configurações padrão? Esta ação não pode ser desfeita.')) {
       setCategories(getCompleteCategories());
       setSaveStatus('idle');
+      setExpandedLevels(new Set());
+      setCurrentPage(1);
     }
   };
 
@@ -294,13 +310,6 @@ const AffiliateCategoriesLevelsSettings: React.FC = () => {
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       console.log('Saving Categories and Levels:', categories);
-      
-      // Aqui seria feita a chamada real para a API
-      // const response = await fetch('/api/admin/configurations/bulk-update', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ categoryConfigs: categories })
-      // });
       
       setSaveStatus('success');
       setTimeout(() => setSaveStatus('idle'), 3000);
@@ -315,6 +324,13 @@ const AffiliateCategoriesLevelsSettings: React.FC = () => {
   };
 
   const selectedCategoryData = categories.find(cat => cat.id === selectedCategory);
+  
+  // Paginação
+  const totalLevels = selectedCategoryData?.levels.length || 0;
+  const totalPages = Math.ceil(totalLevels / levelsPerPage);
+  const startIndex = (currentPage - 1) * levelsPerPage;
+  const endIndex = startIndex + levelsPerPage;
+  const currentLevels = selectedCategoryData?.levels.slice(startIndex, endIndex) || [];
 
   const getSaveButtonText = () => {
     switch (saveStatus) {
@@ -326,7 +342,7 @@ const AffiliateCategoriesLevelsSettings: React.FC = () => {
   };
 
   const getSaveButtonClass = () => {
-    const baseClass = "px-6 py-3 text-sm font-bold rounded-md transition-colors ";
+    const baseClass = "px-6 py-3 text-sm font-bold rounded-md transition-colors flex items-center gap-2 ";
     switch (saveStatus) {
       case 'saving': return baseClass + "text-gray-400 bg-gray-600 cursor-not-allowed";
       case 'success': return baseClass + "text-white bg-green-600 hover:bg-green-700";
@@ -344,8 +360,9 @@ const AffiliateCategoriesLevelsSettings: React.FC = () => {
         <div className="flex gap-3">
           <button 
             onClick={resetToDefaults}
-            className="px-4 py-2 text-sm font-medium text-yellow-400 bg-transparent border border-yellow-400 rounded-md hover:bg-yellow-400 hover:text-gray-900 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-yellow-400 bg-transparent border border-yellow-400 rounded-md hover:bg-yellow-400 hover:text-gray-900 transition-colors flex items-center gap-2"
           >
+            <RotateCcw size={16} />
             Restaurar Padrões
           </button>
         </div>
@@ -383,7 +400,10 @@ const AffiliateCategoriesLevelsSettings: React.FC = () => {
           {categories.map((category) => (
             <button
               key={category.id}
-              onClick={() => setSelectedCategory(category.id)}
+              onClick={() => {
+                setSelectedCategory(category.id);
+                setCurrentPage(1);
+              }}
               className={`p-3 rounded text-sm font-medium transition-colors ${
                 selectedCategory === category.id
                   ? 'bg-azul-ciano text-white'
@@ -411,107 +431,161 @@ const AffiliateCategoriesLevelsSettings: React.FC = () => {
             </div>
             <button 
               onClick={() => addLevel(categories.findIndex(cat => cat.id === selectedCategory))}
-              className="px-4 py-2 text-sm font-medium text-azul-ciano bg-transparent border border-azul-ciano rounded-md hover:bg-azul-ciano hover:text-white transition-colors"
+              className="px-4 py-2 text-sm font-medium text-azul-ciano bg-transparent border border-azul-ciano rounded-md hover:bg-azul-ciano hover:text-white transition-colors flex items-center gap-2"
             >
+              <Plus size={16} />
               Adicionar Level
             </button>
           </div>
 
-          {/* Levels da Categoria */}
-          <div className="space-y-4 max-h-96 overflow-y-auto">
-            {selectedCategoryData.levels.map((level, levelIndex) => {
+          {/* Lista Compacta de Levels */}
+          <div className="space-y-2">
+            {currentLevels.map((level, levelIndex) => {
               const categoryIndex = categories.findIndex(cat => cat.id === selectedCategory);
+              const actualLevelIndex = startIndex + levelIndex;
+              const isExpanded = expandedLevels.has(level.id);
+              
               return (
-                <div key={level.id} className="p-4 border border-gray-700 rounded-lg bg-gray-800/30">
-                  <div className="flex justify-between items-center mb-3">
-                    <h4 className="text-lg font-medium text-branco">{level.name}</h4>
-                    <button 
-                      onClick={() => removeLevel(categoryIndex, levelIndex)}
-                      className="text-red-500 hover:text-red-400 text-sm px-2 py-1 rounded border border-red-500 hover:bg-red-500/10"
-                    >
-                      Remover
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Requisitos */}
-                    <div>
-                      <h5 className="font-medium text-gray-300 mb-3">Requisitos</h5>
-                      <div className="space-y-3">
-                        <div>
-                          <label className="block text-sm text-gray-400 mb-1">Indicações Mínimas:</label>
-                          <input 
-                            type="number" 
-                            value={level.requirements.minReferrals}
-                            onChange={(e) => handleLevelFieldChange(categoryIndex, levelIndex, 'requirements', 'minReferrals', e.target.value)}
-                            className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-azul-ciano outline-none text-white"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm text-gray-400 mb-1">Indicações Máximas:</label>
-                          <input 
-                            type="number" 
-                            value={level.requirements.maxReferrals}
-                            onChange={(e) => handleLevelFieldChange(categoryIndex, levelIndex, 'requirements', 'maxReferrals', e.target.value)}
-                            className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-azul-ciano outline-none text-white"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Comissões RevShare */}
-                    <div>
-                      <h5 className="font-medium text-gray-300 mb-3">Comissões RevShare (%)</h5>
-                      <div className="space-y-3">
-                        <div>
-                          <label className="block text-sm text-gray-400 mb-1">RevShare Nível 1:</label>
-                          <input 
-                            type="number" 
-                            value={level.benefits.revLevel1}
-                            onChange={(e) => handleLevelFieldChange(categoryIndex, levelIndex, 'benefits', 'revLevel1', e.target.value)}
-                            className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-azul-ciano outline-none text-white"
-                            step="0.01"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm text-gray-400 mb-1">RevShare Níveis 2-5 (cada):</label>
-                          <input 
-                            type="number" 
-                            value={level.benefits.revLevels2to5}
-                            onChange={(e) => handleLevelFieldChange(categoryIndex, levelIndex, 'benefits', 'revLevels2to5', e.target.value)}
-                            className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-azul-ciano outline-none text-white"
-                            step="0.01"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Bônus */}
-                    <div>
-                      <h5 className="font-medium text-gray-300 mb-3">Bônus</h5>
-                      <div className="space-y-3">
-                        <div>
-                          <label className="block text-sm text-gray-400 mb-1">Bônus Level Up (R$):</label>
-                          <input 
-                            type="number" 
-                            value={level.benefits.levelUpBonus}
-                            onChange={(e) => handleLevelFieldChange(categoryIndex, levelIndex, 'benefits', 'levelUpBonus', e.target.value)}
-                            className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-azul-ciano outline-none text-white"
-                            step="0.01"
-                          />
+                <div key={level.id} className="border border-gray-700 rounded-lg bg-gray-800/30">
+                  {/* Cabeçalho Compacto */}
+                  <div 
+                    className="p-3 cursor-pointer hover:bg-gray-700/30 transition-colors"
+                    onClick={() => toggleLevelExpansion(level.id)}
+                  >
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                          <h4 className="text-lg font-medium text-branco">{level.name}</h4>
                         </div>
                         <div className="text-sm text-gray-400">
-                          <strong>CPA Estimado:</strong><br/>
-                          Nível 1: R$ {(35 * level.benefits.revLevel1 / 100).toFixed(2)}<br/>
-                          Níveis 2-5: R$ {(25 * level.benefits.revLevels2to5 / 100).toFixed(2)} cada
+                          {level.requirements.minReferrals} - {level.requirements.maxReferrals} indicações
+                        </div>
+                        <div className="text-sm text-azul-ciano">
+                          Rev: {level.benefits.revLevel1}% | Bônus: R$ {level.benefits.levelUpBonus}
+                        </div>
+                      </div>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeLevel(categoryIndex, actualLevelIndex);
+                        }}
+                        className="text-red-500 hover:text-red-400 p-1 rounded hover:bg-red-500/10 transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Detalhes Expandidos */}
+                  {isExpanded && (
+                    <div className="p-4 border-t border-gray-700">
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Requisitos */}
+                        <div>
+                          <h5 className="font-medium text-gray-300 mb-3">Requisitos</h5>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-sm text-gray-400 mb-1">Indicações Mínimas:</label>
+                              <input 
+                                type="number" 
+                                value={level.requirements.minReferrals}
+                                onChange={(e) => handleLevelFieldChange(categoryIndex, actualLevelIndex, 'requirements', 'minReferrals', e.target.value)}
+                                className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-azul-ciano outline-none text-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm text-gray-400 mb-1">Indicações Máximas:</label>
+                              <input 
+                                type="number" 
+                                value={level.requirements.maxReferrals}
+                                onChange={(e) => handleLevelFieldChange(categoryIndex, actualLevelIndex, 'requirements', 'maxReferrals', e.target.value)}
+                                className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-azul-ciano outline-none text-white"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Comissões RevShare */}
+                        <div>
+                          <h5 className="font-medium text-gray-300 mb-3">Comissões RevShare (%)</h5>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-sm text-gray-400 mb-1">RevShare Nível 1:</label>
+                              <input 
+                                type="number" 
+                                value={level.benefits.revLevel1}
+                                onChange={(e) => handleLevelFieldChange(categoryIndex, actualLevelIndex, 'benefits', 'revLevel1', e.target.value)}
+                                className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-azul-ciano outline-none text-white"
+                                step="0.01"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm text-gray-400 mb-1">RevShare Níveis 2-5 (cada):</label>
+                              <input 
+                                type="number" 
+                                value={level.benefits.revLevels2to5}
+                                onChange={(e) => handleLevelFieldChange(categoryIndex, actualLevelIndex, 'benefits', 'revLevels2to5', e.target.value)}
+                                className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-azul-ciano outline-none text-white"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Bônus */}
+                        <div>
+                          <h5 className="font-medium text-gray-300 mb-3">Bônus</h5>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-sm text-gray-400 mb-1">Bônus Level Up (R$):</label>
+                              <input 
+                                type="number" 
+                                value={level.benefits.levelUpBonus}
+                                onChange={(e) => handleLevelFieldChange(categoryIndex, actualLevelIndex, 'benefits', 'levelUpBonus', e.target.value)}
+                                className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-azul-ciano outline-none text-white"
+                                step="0.01"
+                              />
+                            </div>
+                            <div className="text-sm text-gray-400">
+                              <strong>CPA Estimado:</strong><br/>
+                              Nível 1: R$ {(35 * level.benefits.revLevel1 / 100).toFixed(2)}<br/>
+                              Níveis 2-5: R$ {(25 * level.benefits.revLevels2to5 / 100).toFixed(2)} cada
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               );
             })}
           </div>
+
+          {/* Paginação */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-6">
+              <button
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 text-sm bg-gray-700 text-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
+              >
+                Anterior
+              </button>
+              
+              <span className="text-sm text-gray-400">
+                Página {currentPage} de {totalPages} ({totalLevels} levels total)
+              </span>
+              
+              <button
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 text-sm bg-gray-700 text-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
+              >
+                Próxima
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -522,6 +596,7 @@ const AffiliateCategoriesLevelsSettings: React.FC = () => {
           disabled={isLoading}
           className={getSaveButtonClass()}
         >
+          <Save size={16} />
           {getSaveButtonText()}
         </button>
       </div>
