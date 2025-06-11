@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, Plus, Trash2, Save, RotateCcw } from 'lucide-react';
 
-// VERSÃO 3.0 - COMPONENTE COMPLETAMENTE NOVO PARA FORÇAR ATUALIZAÇÃO
-// Componente para gerenciamento de categorias e levels de afiliados - v3.0
+// VERSÃO 4.0 - ATUALIZAÇÃO PARA REVSHARE MLM POR CATEGORIA
+// Componente para gerenciamento de categorias e levels de afiliados - v4.0
 interface Level {
   id: string;
   name: string;
@@ -12,7 +12,6 @@ interface Level {
   };
   benefits: {
     revLevel1: number;
-    revLevels2to5: number;
     levelUpBonus: number;
   };
 }
@@ -21,6 +20,7 @@ interface Category {
   id: string;
   name: string;
   description: string;
+  revLevels2to5: number; // RevShare único para níveis 2-5 da categoria
   levels: Level[];
 }
 
@@ -30,18 +30,19 @@ const getCompleteCategories = (): Category[] => [
     id: 'jogador',
     name: 'Jogador',
     description: 'Categoria inicial para novos afiliados (0-10 indicações)',
+    revLevels2to5: 1.00, // 1% para níveis 2-5
     levels: [
       {
         id: 'jogador_1',
         name: 'Level 1',
-        requirements: { minReferrals: 0, maxReferrals: 4 },
-        benefits: { revLevel1: 1.00, revLevels2to5: 3.00, levelUpBonus: 50 } // R$ 50 fixo por level
+        requirements: { minReferrals: 0, maxReferrals: 5 },
+        benefits: { revLevel1: 1.00, levelUpBonus: 25 } // R$ 25 conforme documento
       },
       {
         id: 'jogador_2',
         name: 'Level 2',
-        requirements: { minReferrals: 5, maxReferrals: 10 },
-        benefits: { revLevel1: 6.00, revLevels2to5: 3.00, levelUpBonus: 50 } // R$ 50 fixo por level
+        requirements: { minReferrals: 6, maxReferrals: 10 },
+        benefits: { revLevel1: 6.00, levelUpBonus: 25 } // R$ 25 conforme documento
       }
     ]
   },
@@ -49,26 +50,19 @@ const getCompleteCategories = (): Category[] => [
     id: 'iniciante',
     name: 'Iniciante',
     description: 'Categoria para afiliados com primeiras indicações (11-30 indicações)',
+    revLevels2to5: 2.00, // 2% para níveis 2-5
     levels: [
       {
         id: 'iniciante_1',
         name: 'Level 1',
         requirements: { minReferrals: 11, maxReferrals: 20 },
-        benefits: { 
-          revLevel1: 12.00, 
-          revLevels2to5: 12.00, 
-          levelUpBonus: 50 // R$ 50 fixo por level (10 indicações)
-        }
+        benefits: { revLevel1: 6.00, levelUpBonus: 50 } // R$ 50 conforme documento
       },
       {
         id: 'iniciante_2',
         name: 'Level 2',
         requirements: { minReferrals: 21, maxReferrals: 30 },
-        benefits: { 
-          revLevel1: 12.00, 
-          revLevels2to5: 12.00, 
-          levelUpBonus: 50 // R$ 50 fixo por level (10 indicações)
-        }
+        benefits: { revLevel1: 12.00, levelUpBonus: 50 } // R$ 50 conforme documento
       }
     ]
   },
@@ -76,48 +70,49 @@ const getCompleteCategories = (): Category[] => [
     id: 'afiliado',
     name: 'Afiliado',
     description: 'Categoria intermediária com múltiplos levels (31-100 indicações)',
+    revLevels2to5: 3.00, // 3% para níveis 2-5
     levels: [
       {
         id: 'afiliado_1',
         name: 'Level 1',
         requirements: { minReferrals: 31, maxReferrals: 40 },
-        benefits: { revLevel1: 12.00, revLevels2to5: 3.00, levelUpBonus: 50 } // R$ 50 fixo por level
+        benefits: { revLevel1: 12.00, levelUpBonus: 50 } // R$ 50 conforme documento
       },
       {
         id: 'afiliado_2',
         name: 'Level 2',
         requirements: { minReferrals: 41, maxReferrals: 50 },
-        benefits: { revLevel1: 14.00, revLevels2to5: 3.00, levelUpBonus: 50 } // R$ 50 fixo por level
+        benefits: { revLevel1: 13.00, levelUpBonus: 50 }
       },
       {
         id: 'afiliado_3',
         name: 'Level 3',
         requirements: { minReferrals: 51, maxReferrals: 60 },
-        benefits: { revLevel1: 14.00, revLevels2to5: 3.00, levelUpBonus: 50 } // R$ 50 fixo por level
+        benefits: { revLevel1: 14.00, levelUpBonus: 50 }
       },
       {
         id: 'afiliado_4',
         name: 'Level 4',
         requirements: { minReferrals: 61, maxReferrals: 70 },
-        benefits: { revLevel1: 16.00, revLevels2to5: 3.00, levelUpBonus: 50 } // R$ 50 fixo por level
+        benefits: { revLevel1: 15.00, levelUpBonus: 50 }
       },
       {
         id: 'afiliado_5',
         name: 'Level 5',
         requirements: { minReferrals: 71, maxReferrals: 80 },
-        benefits: { revLevel1: 16.00, revLevels2to5: 3.00, levelUpBonus: 50 } // R$ 50 fixo por level
+        benefits: { revLevel1: 16.00, levelUpBonus: 50 }
       },
       {
         id: 'afiliado_6',
         name: 'Level 6',
         requirements: { minReferrals: 81, maxReferrals: 90 },
-        benefits: { revLevel1: 18.00, revLevels2to5: 3.00, levelUpBonus: 50 } // R$ 50 fixo por level
+        benefits: { revLevel1: 17.00, levelUpBonus: 50 }
       },
       {
         id: 'afiliado_7',
         name: 'Level 7',
         requirements: { minReferrals: 91, maxReferrals: 100 },
-        benefits: { revLevel1: 18.00, revLevels2to5: 3.00, levelUpBonus: 50 } // R$ 50 fixo por level
+        benefits: { revLevel1: 18.00, levelUpBonus: 50 }
       }
     ]
   },
@@ -125,24 +120,28 @@ const getCompleteCategories = (): Category[] => [
     id: 'profissional',
     name: 'Profissional',
     description: 'Categoria avançada com 90 levels (101-1.000 indicações)',
+    revLevels2to5: 4.00, // 4% para níveis 2-5
     levels: generateProfessionalLevels()
   },
   {
     id: 'expert',
     name: 'Expert',
     description: 'Categoria expert com 90 levels (1.001-10.000 indicações)',
+    revLevels2to5: 5.00, // 5% para níveis 2-5
     levels: generateExpertLevels()
   },
   {
     id: 'mestre',
     name: 'Mestre',
     description: 'Categoria mestre com 90 levels (10.001-100.000 indicações)',
+    revLevels2to5: 6.00, // 6% para níveis 2-5
     levels: generateMestreLevels()
   },
   {
     id: 'lenda',
     name: 'Lenda',
     description: 'Categoria máxima com 90 levels (100.001+ indicações)',
+    revLevels2to5: 7.00, // 7% para níveis 2-5
     levels: generateLendaLevels()
   }
 ];
@@ -154,7 +153,6 @@ function generateProfessionalLevels(): Level[] {
     const minReferrals = 101 + (i - 1) * 10;
     const maxReferrals = 100 + i * 10;
     const revLevel1 = 18.00 + (i - 1) * 0.067;
-    const levelUpBonus = 50; // R$ 50 fixo por level (10 indicações)
     
     levels.push({
       id: `profissional_${i}`,
@@ -162,8 +160,7 @@ function generateProfessionalLevels(): Level[] {
       requirements: { minReferrals, maxReferrals },
       benefits: { 
         revLevel1: Math.round(revLevel1 * 100) / 100, 
-        revLevels2to5: 3.00, 
-        levelUpBonus 
+        levelUpBonus: 500 // R$ 500 conforme documento
       }
     });
   }
@@ -177,7 +174,6 @@ function generateExpertLevels(): Level[] {
     const minReferrals = 1001 + (i - 1) * 100;
     const maxReferrals = 1000 + i * 100;
     const revLevel1 = 24.00 + (i - 1) * 0.067;
-    const levelUpBonus = 500; // R$ 500 fixo por level (100 indicações)
     
     levels.push({
       id: `expert_${i}`,
@@ -185,8 +181,7 @@ function generateExpertLevels(): Level[] {
       requirements: { minReferrals, maxReferrals },
       benefits: { 
         revLevel1: Math.round(revLevel1 * 100) / 100, 
-        revLevels2to5: 4.00, 
-        levelUpBonus 
+        levelUpBonus: 500 // R$ 500 conforme documento
       }
     });
   }
@@ -200,7 +195,6 @@ function generateMestreLevels(): Level[] {
     const minReferrals = 10001 + (i - 1) * 1000;
     const maxReferrals = 10000 + i * 1000;
     const revLevel1 = 30.00 + (i - 1) * 0.067;
-    const levelUpBonus = 5000; // R$ 5.000 fixo por level (1000 indicações)
     
     levels.push({
       id: `mestre_${i}`,
@@ -208,8 +202,7 @@ function generateMestreLevels(): Level[] {
       requirements: { minReferrals, maxReferrals },
       benefits: { 
         revLevel1: Math.round(revLevel1 * 100) / 100, 
-        revLevels2to5: 5.00, 
-        levelUpBonus 
+        levelUpBonus: 5000 // R$ 5.000 conforme documento
       }
     });
   }
@@ -220,9 +213,8 @@ function generateMestreLevels(): Level[] {
 function generateLendaLevels(): Level[] {
   const levels: Level[] = [];
   for (let i = 1; i <= 90; i++) {
-    const minReferrals = 100001 + (i - 1) * 1000; // Alterado para 1000 indicações por level
+    const minReferrals = 100001 + (i - 1) * 1000;
     const maxReferrals = i === 90 ? 999999999 : 100000 + i * 1000;
-    const levelUpBonus = 5000; // R$ 5.000 fixo por level (1000 indicações)
     
     levels.push({
       id: `lenda_${i}`,
@@ -230,8 +222,7 @@ function generateLendaLevels(): Level[] {
       requirements: { minReferrals, maxReferrals },
       benefits: { 
         revLevel1: 42.00, 
-        revLevels2to5: 7.00, 
-        levelUpBonus 
+        levelUpBonus: 5000 // R$ 5.000 conforme documento
       }
     });
   }
@@ -251,6 +242,12 @@ const CategoriesLevelsManager: React.FC = () => {
   useEffect(() => {
     setCategories(getCompleteCategories());
   }, []);
+
+  const handleCategoryRevShareChange = (categoryIndex: number, value: string) => {
+    const newCategories = [...categories];
+    newCategories[categoryIndex].revLevels2to5 = parseFloat(value) || 0;
+    setCategories(newCategories);
+  };
 
   const handleLevelFieldChange = (
     categoryIndex: number, 
@@ -278,7 +275,7 @@ const CategoriesLevelsManager: React.FC = () => {
         minReferrals: lastLevel ? lastLevel.requirements.maxReferrals + 1 : 0, 
         maxReferrals: lastLevel ? lastLevel.requirements.maxReferrals + 100 : 100 
       },
-      benefits: { revLevel1: 0, revLevels2to5: 0, levelUpBonus: 0 },
+      benefits: { revLevel1: 0, levelUpBonus: 0 },
     };
     
     newCategories[categoryIndex].levels.push(newLevel);
@@ -392,7 +389,7 @@ const CategoriesLevelsManager: React.FC = () => {
             <div className="text-sm text-gray-400">Total de Levels</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-branco">R$ 60,00</div>
+            <div className="text-2xl font-bold text-branco">R$ 85,00</div>
             <div className="text-sm text-gray-400">CPA Total</div>
           </div>
           <div className="text-center">
@@ -426,11 +423,11 @@ const CategoriesLevelsManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Informações da Categoria Selecionada */}
+      {/* Configurações da Categoria Selecionada */}
       {selectedCategoryData && (
         <div className="mb-6 p-4 bg-cinza-escuro rounded-lg">
           <div className="flex justify-between items-start mb-4">
-            <div>
+            <div className="flex-1">
               <h3 className="text-xl font-semibold text-azul-ciano">{selectedCategoryData.name}</h3>
               <p className="text-sm text-gray-400 mt-1">{selectedCategoryData.description}</p>
               <div className="flex gap-4 mt-3 text-sm text-gray-300">
@@ -447,13 +444,49 @@ const CategoriesLevelsManager: React.FC = () => {
             </button>
           </div>
 
+          {/* Configuração RevShare MLM para a Categoria */}
+          <div className="mb-6 p-4 bg-gray-800 rounded-lg border border-azul-ciano">
+            <h4 className="text-lg font-semibold text-azul-ciano mb-3">Configuração RevShare MLM</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  RevShare Níveis 2-5 (%)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  value={selectedCategoryData.revLevels2to5}
+                  onChange={(e) => handleCategoryRevShareChange(
+                    categories.findIndex(cat => cat.id === selectedCategory), 
+                    e.target.value
+                  )}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-azul-ciano"
+                  placeholder="Ex: 3.00"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Percentual aplicado igualmente aos níveis 2, 3, 4 e 5 da rede MLM
+                </p>
+              </div>
+              <div className="flex items-center">
+                <div className="p-3 bg-gray-700 rounded-lg">
+                  <div className="text-sm text-gray-300">
+                    <div><strong>Nível 1:</strong> Configurado por level individual</div>
+                    <div><strong>Níveis 2-5:</strong> {selectedCategoryData.revLevels2to5}% cada</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Lista Compacta de Levels */}
           <div className="space-y-2">
             {currentLevels.map((level, levelIndex) => {
               const categoryIndex = categories.findIndex(cat => cat.id === selectedCategory);
               const actualLevelIndex = startIndex + levelIndex;
               const isExpanded = expandedLevels.has(level.id);
-
+              
               return (
                 <div key={level.id} className="bg-gray-800 rounded-lg border border-gray-700">
                   {/* Header Compacto */}
@@ -461,17 +494,17 @@ const CategoriesLevelsManager: React.FC = () => {
                     className="p-4 cursor-pointer hover:bg-gray-750 transition-colors"
                     onClick={() => toggleLevelExpansion(level.id)}
                   >
-                    <div className="flex justify-between items-center">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
                           {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                          <span className="font-semibold text-azul-ciano">{level.name}</span>
+                          <span className="font-medium text-white">{level.name}</span>
                         </div>
                         <div className="text-sm text-gray-400">
                           {level.requirements.minReferrals} - {level.requirements.maxReferrals} indicações
                         </div>
-                        <div className="text-sm text-gray-400">
-                          Rev: {level.benefits.revLevel1}% | Bonus: R$ {level.benefits.levelUpBonus}
+                        <div className="text-sm text-azul-ciano">
+                          Rev: {level.benefits.revLevel1}% | Bônus: R$ {level.benefits.levelUpBonus}
                         </div>
                       </div>
                       <button
@@ -479,7 +512,7 @@ const CategoriesLevelsManager: React.FC = () => {
                           e.stopPropagation();
                           removeLevel(categoryIndex, actualLevelIndex);
                         }}
-                        className="text-red-400 hover:text-red-300 p-1"
+                        className="text-red-400 hover:text-red-300 transition-colors"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -489,66 +522,59 @@ const CategoriesLevelsManager: React.FC = () => {
                   {/* Detalhes Expandidos */}
                   {isExpanded && (
                     <div className="px-4 pb-4 border-t border-gray-700">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                        {/* Requisitos */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
                         <div>
-                          <h4 className="text-sm font-semibold text-gray-300 mb-3">Requisitos</h4>
-                          <div className="space-y-3">
-                            <div>
-                              <label className="block text-xs text-gray-400 mb-1">Mín. Indicações</label>
-                              <input
-                                type="number"
-                                value={level.requirements.minReferrals}
-                                onChange={(e) => handleLevelFieldChange(categoryIndex, actualLevelIndex, 'requirements', 'minReferrals', e.target.value)}
-                                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs text-gray-400 mb-1">Máx. Indicações</label>
-                              <input
-                                type="number"
-                                value={level.requirements.maxReferrals}
-                                onChange={(e) => handleLevelFieldChange(categoryIndex, actualLevelIndex, 'requirements', 'maxReferrals', e.target.value)}
-                                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white"
-                              />
-                            </div>
-                          </div>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Min. Indicações
+                          </label>
+                          <input
+                            type="number"
+                            value={level.requirements.minReferrals}
+                            onChange={(e) => handleLevelFieldChange(
+                              categoryIndex, actualLevelIndex, 'requirements', 'minReferrals', e.target.value
+                            )}
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-azul-ciano"
+                          />
                         </div>
-
-                        {/* Benefícios */}
                         <div>
-                          <h4 className="text-sm font-semibold text-gray-300 mb-3">Benefícios</h4>
-                          <div className="space-y-3">
-                            <div>
-                              <label className="block text-xs text-gray-400 mb-1">RevShare Level 1 (%)</label>
-                              <input
-                                type="number"
-                                step="0.01"
-                                value={level.benefits.revLevel1}
-                                onChange={(e) => handleLevelFieldChange(categoryIndex, actualLevelIndex, 'benefits', 'revLevel1', e.target.value)}
-                                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs text-gray-400 mb-1">RevShare Levels 2-5 (%)</label>
-                              <input
-                                type="number"
-                                step="0.01"
-                                value={level.benefits.revLevels2to5}
-                                onChange={(e) => handleLevelFieldChange(categoryIndex, actualLevelIndex, 'benefits', 'revLevels2to5', e.target.value)}
-                                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs text-gray-400 mb-1">Bônus Level Up (R$)</label>
-                              <input
-                                type="number"
-                                value={level.benefits.levelUpBonus}
-                                onChange={(e) => handleLevelFieldChange(categoryIndex, actualLevelIndex, 'benefits', 'levelUpBonus', e.target.value)}
-                                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white"
-                              />
-                            </div>
-                          </div>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Máx. Indicações
+                          </label>
+                          <input
+                            type="number"
+                            value={level.requirements.maxReferrals}
+                            onChange={(e) => handleLevelFieldChange(
+                              categoryIndex, actualLevelIndex, 'requirements', 'maxReferrals', e.target.value
+                            )}
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-azul-ciano"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">
+                            RevShare Nível 1 (%)
+                          </label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={level.benefits.revLevel1}
+                            onChange={(e) => handleLevelFieldChange(
+                              categoryIndex, actualLevelIndex, 'benefits', 'revLevel1', e.target.value
+                            )}
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-azul-ciano"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Bônus Level Up (R$)
+                          </label>
+                          <input
+                            type="number"
+                            value={level.benefits.levelUpBonus}
+                            onChange={(e) => handleLevelFieldChange(
+                              categoryIndex, actualLevelIndex, 'benefits', 'levelUpBonus', e.target.value
+                            )}
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-azul-ciano"
+                          />
                         </div>
                       </div>
                     </div>
@@ -564,33 +590,19 @@ const CategoriesLevelsManager: React.FC = () => {
               <button
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-2 text-sm bg-gray-700 text-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
+                className="px-3 py-2 text-sm bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Anterior
               </button>
-              
-              <div className="flex gap-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`px-3 py-2 text-sm rounded ${
-                      currentPage === page
-                        ? 'bg-azul-ciano text-white'
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-              </div>
-              
+              <span className="text-sm text-gray-400">
+                Página {currentPage} de {totalPages}
+              </span>
               <button
                 onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
-                className="px-3 py-2 text-sm bg-gray-700 text-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
+                className="px-3 py-2 text-sm bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Próximo
+                Próxima
               </button>
             </div>
           )}

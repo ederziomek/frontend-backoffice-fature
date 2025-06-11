@@ -11,6 +11,7 @@ interface RevenueShareSettingsData {
   abatimentoBaus: boolean; // Se baús são abatidos do Revenue Share
   abatimentoLevelUp: boolean; // Se recompensas de subir de level são abatidas do Revenue Share
   retencaoPercentage: number | string; // % de retenção abatido do GGR total
+  taxaAdministrativa: number | string; // Taxa administrativa de 20% conforme documento
   
   // Configurações de Pagamento
   pagamentoPeloCofre: boolean; // Se todas as recompensas são pagas através do cofre
@@ -21,12 +22,13 @@ interface RevenueShareSettingsData {
 }
 
 const initialSettings: RevenueShareSettingsData = {
-  cofrePercentage: 70,
-  rankingsPercentage: 30,
+  cofrePercentage: 96, // 96% conforme documento padrão
+  rankingsPercentage: 4, // 4% conforme documento padrão
   abatimentoIndicacaoDiaria: true,
   abatimentoBaus: true,
   abatimentoLevelUp: true,
   retencaoPercentage: 5,
+  taxaAdministrativa: 20, // Taxa administrativa de 20% conforme documento
   pagamentoPeloCofre: true,
   limiteMinimoRevShare: 1,
   frequenciaPagamento: 'diario',
@@ -68,6 +70,10 @@ const RevenueShareSettings: React.FC = () => {
     
     if (Number(settings.rankingsPercentage) < 0 || Number(settings.rankingsPercentage) > 100) {
       errors.push('Percentual dos rankings deve estar entre 0% e 100%');
+    }
+
+    if (Number(settings.taxaAdministrativa) < 0 || Number(settings.taxaAdministrativa) > 100) {
+      errors.push('Taxa administrativa deve estar entre 0% e 100%');
     }
     
     if (Number(settings.limiteMinimoRevShare) < 0) {
@@ -181,7 +187,7 @@ const RevenueShareSettings: React.FC = () => {
                     value={settings.cofrePercentage}
                     onChange={(e) => handleChange('cofrePercentage', e.target.value)}
                     className="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:border-azul-ciano outline-none text-lg"
-                    placeholder="70"
+                    placeholder="96"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Valor que será destinado ao cofre para distribuição aos afiliados
@@ -199,7 +205,7 @@ const RevenueShareSettings: React.FC = () => {
                     value={settings.rankingsPercentage}
                     onChange={(e) => handleChange('rankingsPercentage', e.target.value)}
                     className="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:border-azul-ciano outline-none text-lg"
-                    placeholder="30"
+                    placeholder="4"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Valor que será usado para financiar premiações dos rankings
@@ -246,6 +252,34 @@ const RevenueShareSettings: React.FC = () => {
               </p>
               
               <div className="space-y-4">
+                {/* Taxa Administrativa - NOVO CAMPO */}
+                <div className="p-4 bg-yellow-900/20 border border-yellow-500/50 rounded-md">
+                  <div className="mb-3">
+                    <h4 className="text-sm font-semibold text-yellow-400">Taxa Administrativa</h4>
+                    <p className="text-xs text-yellow-300">Taxa administrativa fixa abatida do GGR antes do cálculo do NGR</p>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="flex-1">
+                      <label className="block text-xs font-medium text-gray-400 mb-1">
+                        Taxa Administrativa (%)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={settings.taxaAdministrativa}
+                        onChange={(e) => handleChange('taxaAdministrativa', e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+                        placeholder="20.0"
+                      />
+                    </div>
+                    <div className="text-xs text-yellow-300 mt-6">
+                      Percentual fixo sobre o GGR total
+                    </div>
+                  </div>
+                </div>
+
                 <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-md border border-gray-700">
                   <div>
                     <h4 className="text-sm font-semibold text-gray-300">Indicação Diária</h4>
@@ -325,13 +359,17 @@ const RevenueShareSettings: React.FC = () => {
               <div className="mt-6 p-4 bg-blue-900/20 border border-blue-500/50 rounded-md">
                 <div className="flex items-center mb-2">
                   <Info size={16} className="text-blue-400 mr-2" />
-                  <span className="text-sm font-semibold text-blue-400">Como Funciona o Abatimento</span>
+                  <span className="text-sm font-semibold text-blue-400">Ordem de Cálculo do NGR</span>
                 </div>
-                <p className="text-sm text-blue-300">
-                  Quando uma recompensa é marcada para abatimento, seu valor será deduzido do Revenue Share total 
-                  antes da distribuição entre cofre e rankings. Isso garante que as recompensas sejam financiadas 
-                  pelo próprio Revenue Share gerado.
-                </p>
+                <div className="text-sm text-blue-300 space-y-1">
+                  <p>1. <strong>GGR Total</strong> - Receita bruta de jogos</p>
+                  <p>2. <strong>- Taxa Administrativa ({settings.taxaAdministrativa}%)</strong> - Custos operacionais fixos</p>
+                  <p>3. <strong>- Indicações Diárias</strong> - Valor real gasto (se ativo)</p>
+                  <p>4. <strong>- Baús Semanais</strong> - Valor real gasto (se ativo)</p>
+                  <p>5. <strong>- Level Up Bonuses</strong> - Valor real gasto (se ativo)</p>
+                  <p>6. <strong>- Retenção ({settings.retencaoPercentage}%)</strong> - Custos de reativação</p>
+                  <p>7. <strong>= NGR Final</strong> - Base para distribuição Revenue Share</p>
+                </div>
               </div>
             </div>
           </div>
@@ -342,16 +380,14 @@ const RevenueShareSettings: React.FC = () => {
             <div>
               <h3 className="text-lg font-semibold text-azul-ciano mb-4">Configurações de Pagamento</h3>
               <p className="text-sm text-gray-400 mb-6">
-                Configure como as recompensas serão pagas aos afiliados.
+                Configure como as recompensas são processadas e pagas aos afiliados.
               </p>
               
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-md border border-gray-700">
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-300">Pagamento pelo Cofre de Comissões</h4>
-                    <p className="text-xs text-gray-500">
-                      Todas as recompensas (indicação diária, baús, level up) são pagas através do cofre
-                    </p>
+                    <h4 className="text-sm font-semibold text-gray-300">Pagamento pelo Cofre</h4>
+                    <p className="text-xs text-gray-500">Todas as recompensas são processadas através do cofre de comissões</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
@@ -364,35 +400,20 @@ const RevenueShareSettings: React.FC = () => {
                   </label>
                 </div>
                 
-                <div>
-                  <label className="block font-medium text-gray-300 mb-2">
-                    Frequência de Pagamento
-                  </label>
+                <div className="p-4 bg-gray-800/50 rounded-md border border-gray-700">
+                  <div className="mb-3">
+                    <h4 className="text-sm font-semibold text-gray-300">Frequência de Pagamento</h4>
+                    <p className="text-xs text-gray-500">Com que frequência as recompensas são processadas</p>
+                  </div>
                   <select
                     value={settings.frequenciaPagamento}
                     onChange={(e) => handleChange('frequenciaPagamento', e.target.value)}
-                    className="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:border-azul-ciano outline-none"
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-azul-ciano focus:border-transparent"
                   >
                     <option value="diario">Diário</option>
                     <option value="semanal">Semanal</option>
                     <option value="mensal">Mensal</option>
                   </select>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Frequência com que as recompensas serão processadas e pagas
-                  </p>
-                </div>
-              </div>
-              
-              <div className="mt-6 p-4 bg-green-900/20 border border-green-500/50 rounded-md">
-                <div className="flex items-center mb-2">
-                  <CheckCircle size={16} className="text-green-400 mr-2" />
-                  <span className="text-sm font-semibold text-green-400">Fluxo de Pagamento</span>
-                </div>
-                <div className="text-sm text-green-300 space-y-1">
-                  <p>1. Revenue Share é gerado pelas atividades dos usuários</p>
-                  <p>2. Valores das recompensas são abatidos (se configurado)</p>
-                  <p>3. Restante é distribuído entre cofre ({settings.cofrePercentage}%) e rankings ({settings.rankingsPercentage}%)</p>
-                  <p>4. Recompensas são pagas {settings.pagamentoPeloCofre ? 'através do cofre' : 'diretamente'}</p>
                 </div>
               </div>
             </div>
@@ -404,38 +425,35 @@ const RevenueShareSettings: React.FC = () => {
             <div>
               <h3 className="text-lg font-semibold text-azul-ciano mb-4">Configurações Avançadas</h3>
               <p className="text-sm text-gray-400 mb-6">
-                Configurações adicionais para otimização do sistema de Revenue Share.
+                Configurações técnicas para otimização do sistema de Revenue Share.
               </p>
               
               <div className="space-y-4">
-                <div>
-                  <label className="block font-medium text-gray-300 mb-2">
-                    Limite Mínimo de Revenue Share (R$)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={settings.limiteMinimoRevShare}
-                    onChange={(e) => handleChange('limiteMinimoRevShare', e.target.value)}
-                    className="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:border-azul-ciano outline-none"
-                    placeholder="1.00"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Valor mínimo de Revenue Share necessário para processar distribuição
-                  </p>
+                <div className="p-4 bg-gray-800/50 rounded-md border border-gray-700">
+                  <div className="mb-3">
+                    <h4 className="text-sm font-semibold text-gray-300">Limite Mínimo de Revenue Share</h4>
+                    <p className="text-xs text-gray-500">Valor mínimo de Revenue Share necessário para processar distribuição</p>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="flex-1">
+                      <label className="block text-xs font-medium text-gray-400 mb-1">
+                        Valor Mínimo (R$)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={settings.limiteMinimoRevShare}
+                        onChange={(e) => handleChange('limiteMinimoRevShare', e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-azul-ciano focus:border-transparent"
+                        placeholder="1.00"
+                      />
+                    </div>
+                    <div className="text-xs text-gray-500 mt-6">
+                      Evita processamento de valores muito baixos
+                    </div>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="mt-6 p-4 bg-yellow-900/20 border border-yellow-500/50 rounded-md">
-                <div className="flex items-center mb-2">
-                  <AlertCircle size={16} className="text-yellow-400 mr-2" />
-                  <span className="text-sm font-semibold text-yellow-400">Configurações Avançadas</span>
-                </div>
-                <p className="text-sm text-yellow-300">
-                  Estas configurações afetam o desempenho e comportamento do sistema. 
-                  Altere apenas se necessário e teste cuidadosamente em ambiente de desenvolvimento.
-                </p>
               </div>
             </div>
           </div>
