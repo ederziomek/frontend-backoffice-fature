@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DollarSign, TrendingUp, Award, Settings, Save, RotateCcw, AlertCircle, CheckCircle, Info } from 'lucide-react';
+import { DollarSign, TrendingUp, Award, Settings, Save, RotateCcw, AlertCircle, Info } from 'lucide-react';
 
 interface RevenueShareSettingsData {
   // Distribuição do Revenue Share
