@@ -1,9 +1,11 @@
 [phases.build]
-cmds = ["npm ci", "npm run build"]
+cmds = ["pnpm install --frozen-lockfile", "pnpm run build"]
 
 [phases.start]
-cmd = "npm run preview"
+cmd = "pnpm run preview"
 
 [variables]
+NODE_VERSION = "20.18.0"
 NODE_ENV = "production"
+PNPM_VERSION = "9.15.9"
 
