@@ -45,7 +45,7 @@ jobs:
       run: npm run build
 
   deploy:
-    name: Deploy to ECR and EKS
+    name: Build and Push to ECR
     runs-on: ubuntu-latest
     if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || github.event_name == 'workflow_dispatch'
     
@@ -105,147 +105,6 @@ jobs:
         echo "📋 Image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
         echo "📋 Latest: $ECR_REGISTRY/$ECR_REPOSITORY:latest"
         
-    - name: Setup kubectl
-      uses: azure/setup-kubectl@v3
-      with:
-        version: 'v1.28.0'
-        
-    - name: Update kubeconfig
-      run: |
-        aws eks update-kubeconfig --region $AWS_REGION --name $EKS_CLUSTER_NAME
-        
-    - name: Create Kubernetes Service Account and RBAC
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: ${{ github.sha }}
-      run: |
-        echo "🔧 Setting up Kubernetes Service Account and RBAC..."
-        
-        # Create service account
-        kubectl apply -f - <<EOF
-        apiVersion: v1
-        kind: ServiceAccount
-        metadata:
-          name: github-actions-sa
-          namespace: $NAMESPACE
-        ---
-        apiVersion: rbac.authorization.k8s.io/v1
-        kind: Role
-        metadata:
-          namespace: $NAMESPACE
-          name: deployment-manager
-        rules:
-        - apiGroups: ["apps"]
-          resources: ["deployments"]
-          verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-        - apiGroups: [""]
-          resources: ["pods"]
-          verbs: ["get", "list", "watch"]
-        ---
-        apiVersion: rbac.authorization.k8s.io/v1
-        kind: RoleBinding
-        metadata:
-          name: github-actions-binding
-          namespace: $NAMESPACE
-        subjects:
-        - kind: ServiceAccount
-          name: github-actions-sa
-          namespace: $NAMESPACE
-        roleRef:
-          kind: Role
-          name: deployment-manager
-          apiGroup: rbac.authorization.k8s.io
-        EOF
-        
-        echo "✅ Service Account and RBAC configured!"
-        
-    - name: Deploy to EKS
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: ${{ github.sha }}
-      run: |
-        echo "🚀 Deploying to EKS..."
-        
-        # Check if deployment exists
-        if kubectl get deployment $DEPLOYMENT_NAME -n $NAMESPACE >/dev/null 2>&1; then
-          echo "📝 Updating existing deployment..."
-          kubectl set image deployment/$DEPLOYMENT_NAME $DEPLOYMENT_NAME=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -n $NAMESPACE
-        else
-          echo "🆕 Creating new deployment..."
-          kubectl apply -f - <<EOF
-        apiVersion: apps/v1
-        kind: Deployment
-        metadata:
-          name: $DEPLOYMENT_NAME
-          namespace: $NAMESPACE
-          labels:
-            app: $DEPLOYMENT_NAME
-        spec:
-          replicas: 2
-          selector:
-            matchLabels:
-              app: $DEPLOYMENT_NAME
-          template:
-            metadata:
-              labels:
-                app: $DEPLOYMENT_NAME
-            spec:
-              containers:
-              - name: $DEPLOYMENT_NAME
-                image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-                ports:
-                - containerPort: 80
-                resources:
-                  requests:
-                    memory: "128Mi"
-                    cpu: "100m"
-                  limits:
-                    memory: "256Mi"
-                    cpu: "200m"
-                livenessProbe:
-                  httpGet:
-                    path: /
-                    port: 80
-                  initialDelaySeconds: 30
-                  periodSeconds: 10
-                readinessProbe:
-                  httpGet:
-                    path: /
-                    port: 80
-                  initialDelaySeconds: 5
-                  periodSeconds: 5
-        ---
-        apiVersion: v1
-        kind: Service
-        metadata:
-          name: $DEPLOYMENT_NAME-service
-          namespace: $NAMESPACE
-        spec:
-          selector:
-            app: $DEPLOYMENT_NAME
-          ports:
-            - protocol: TCP
-              port: 80
-              targetPort: 80
-          type: ClusterIP
-        EOF
-        fi
-        
-        echo "⏳ Waiting for rollout to complete..."
-        kubectl rollout status deployment/$DEPLOYMENT_NAME -n $NAMESPACE --timeout=300s
-        
-        echo "✅ Deployment completed successfully!"
-        
-    - name: Verify deployment
-      run: |
-        echo "🔍 Verifying deployment..."
-        kubectl get deployment $DEPLOYMENT_NAME -n $NAMESPACE
-        kubectl get pods -l app=$DEPLOYMENT_NAME -n $NAMESPACE
-        kubectl get service $DEPLOYMENT_NAME-service -n $NAMESPACE
-        
-        echo "📊 Deployment status:"
-        kubectl describe deployment $DEPLOYMENT_NAME -n $NAMESPACE
-        
     - name: Verify ECR images
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -256,22 +115,53 @@ jobs:
         aws ecr describe-images --repository-name $ECR_REPOSITORY --region $AWS_REGION --image-ids imageTag=latest
         echo "✅ Images verified in ECR!"
         
+    - name: Trigger deployment webhook
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        echo "🚀 Triggering deployment via webhook..."
+        
+        # Criar payload para webhook
+        PAYLOAD=$(cat << EOF
+        {
+          "repository": "$ECR_REPOSITORY",
+          "image_tag": "$IMAGE_TAG",
+          "image_uri": "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG",
+          "cluster": "$EKS_CLUSTER_NAME",
+          "namespace": "$NAMESPACE",
+          "deployment": "$DEPLOYMENT_NAME",
+          "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+        }
+        EOF
+        )
+        
+        echo "📦 Deployment payload prepared:"
+        echo "$PAYLOAD"
+        
+        # Simular webhook call (placeholder para implementação futura)
+        echo "⚠️ Webhook deployment não implementado ainda"
+        echo "💡 Para deployment manual, execute:"
+        echo "kubectl set image deployment/$DEPLOYMENT_NAME $DEPLOYMENT_NAME=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -n $NAMESPACE"
+        
     - name: Deploy summary
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        echo "🎉 DEPLOY COMPLETED SUCCESSFULLY!"
+        echo "🎉 BUILD AND PUSH COMPLETED SUCCESSFULLY!"
         echo ""
         echo "📦 Built and pushed Docker images:"
         echo "   • $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
         echo "   • $ECR_REGISTRY/$ECR_REPOSITORY:latest"
         echo ""
-        echo "🚀 Deployed to EKS:"
-        echo "   • Cluster: $EKS_CLUSTER_NAME"
-        echo "   • Namespace: $NAMESPACE"
-        echo "   • Deployment: $DEPLOYMENT_NAME"
+        echo "🚀 Next steps:"
+        echo "   1. Image is ready in ECR"
+        echo "   2. Deployment can be updated manually or via automation"
         echo ""
-        echo "🌐 Access via Load Balancer:"
+        echo "🌐 Expected Load Balancer URL:"
         echo "   http://adb6c471809c54b0992ab68ce696da11-314674034.sa-east-1.elb.amazonaws.com/"
+        echo ""
+        echo "💡 Manual deployment command:"
+        echo "   kubectl set image deployment/$DEPLOYMENT_NAME $DEPLOYMENT_NAME=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -n $NAMESPACE"
 
