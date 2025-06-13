@@ -1,13 +1,13 @@
 # Multi-stage build para aplicação React/Vite
-FROM node:18-alpine as builder
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
 # Copiar arquivos de dependências
 COPY package*.json ./
 
-# Instalar dependências usando npm (consistente com o workflow)
-RUN npm ci --only=production
+# Instalar dependências (incluindo devDependencies para build)
+RUN npm ci
 
 # Copiar código fonte
 COPY . .
@@ -21,13 +21,10 @@ RUN ls -la /app/dist
 # Stage de produção com nginx
 FROM nginx:alpine
 
-# Remover configuração padrão do nginx
-RUN rm /etc/nginx/conf.d/default.conf
-
 # Copiar arquivos buildados
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copiar configuração customizada do nginx
+# Copiar configuração customizada do nginx (sobrescreve a padrão)
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Criar usuário não-root para segurança
