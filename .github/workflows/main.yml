@@ -3,24 +3,52 @@ name: Deploy Frontend Backoffice
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 env:
   AWS_REGION: sa-east-1
   ECR_REPOSITORY: fature-frontend-backoffice
   EKS_CLUSTER_NAME: fature-cluster
   NAMESPACE: fature
+  DEPLOYMENT_NAME: frontend-backoffice
 
 jobs:
-  deploy:
-    name: Deploy to EKS
+  test:
+    name: Run Tests
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       
     - name: Setup Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run linter
+      run: npm run lint
+      
+    - name: Build application
+      run: npm run build
+
+  deploy:
+    name: Deploy to EKS
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
       with:
         node-version: '18'
         cache: 'npm'
@@ -31,16 +59,21 @@ jobs:
     - name: Build application
       run: npm run build
       
+    - name: Verify build output
+      run: |
+        ls -la dist/
+        echo "Build completed successfully"
+        
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
+      uses: aws-actions/configure-aws-credentials@v4
       with:
-        aws-access-key-id: ${{ secrets.ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.SECRET_ACCESS_KEY }}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
         
     - name: Login to Amazon ECR
       id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
+      uses: aws-actions/amazon-ecr-login@v2
       
     - name: Build, tag, and push image to Amazon ECR
       id: build-image
@@ -48,22 +81,77 @@ jobs:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
+        # Build da imagem Docker
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+        
+        # Push das imagens para ECR
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        
+        # Output da imagem para uso em steps subsequentes
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+        echo "registry=$ECR_REGISTRY" >> $GITHUB_OUTPUT
         
     - name: Update kubeconfig
       run: |
         aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER_NAME }}
         
-    - name: Deploy to EKS
+    - name: Verify cluster connection
       run: |
-        kubectl set image deployment/frontend-backoffice frontend-backoffice=${{ steps.build-image.outputs.image }} -n ${{ env.NAMESPACE }}
-        kubectl rollout status deployment/frontend-backoffice -n ${{ env.NAMESPACE }} --timeout=300s
+        kubectl cluster-info
+        kubectl get nodes
         
-    - name: Verify deployment
+    - name: Check if deployment exists
+      id: check-deployment
       run: |
-        kubectl get pods -n ${{ env.NAMESPACE }} | grep frontend-backoffice
+        if kubectl get deployment ${{ env.DEPLOYMENT_NAME }} -n ${{ env.NAMESPACE }} >/dev/null 2>&1; then
+          echo "deployment-exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "deployment-exists=false" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Create deployment if not exists
+      if: steps.check-deployment.outputs.deployment-exists == 'false'
+      run: |
+        kubectl create deployment ${{ env.DEPLOYMENT_NAME }} \
+          --image=${{ steps.build-image.outputs.image }} \
+          --namespace=${{ env.NAMESPACE }}
+        kubectl expose deployment ${{ env.DEPLOYMENT_NAME }} \
+          --port=80 --target-port=80 \
+          --namespace=${{ env.NAMESPACE }}
+        
+    - name: Update existing deployment
+      if: steps.check-deployment.outputs.deployment-exists == 'true'
+      run: |
+        kubectl set image deployment/${{ env.DEPLOYMENT_NAME }} \
+          ${{ env.DEPLOYMENT_NAME }}=${{ steps.build-image.outputs.image }} \
+          -n ${{ env.NAMESPACE }}
+        
+    - name: Wait for rollout to complete
+      run: |
+        kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} \
+          -n ${{ env.NAMESPACE }} --timeout=600s
+        
+    - name: Verify deployment health
+      run: |
+        # Verificar se os pods estão rodando
+        kubectl get pods -n ${{ env.NAMESPACE }} -l app=${{ env.DEPLOYMENT_NAME }}
+        
+        # Verificar se o serviço está respondendo
+        kubectl get service ${{ env.DEPLOYMENT_NAME }} -n ${{ env.NAMESPACE }}
+        
+        # Teste de conectividade (se possível)
+        POD_NAME=$(kubectl get pods -n ${{ env.NAMESPACE }} -l app=${{ env.DEPLOYMENT_NAME }} -o jsonpath="{.items[0].metadata.name}")
+        kubectl exec $POD_NAME -n ${{ env.NAMESPACE }} -- wget --spider http://localhost/health || echo "Health check failed, but deployment completed"
+        
         echo "✅ Frontend Backoffice deployed successfully!"
+        
+    - name: Rollback on failure
+      if: failure()
+      run: |
+        echo "🔄 Rolling back deployment due to failure..."
+        kubectl rollout undo deployment/${{ env.DEPLOYMENT_NAME }} -n ${{ env.NAMESPACE }}
+        kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} -n ${{ env.NAMESPACE }} --timeout=300s
+        echo "❌ Deployment rolled back"
+

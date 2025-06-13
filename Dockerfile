@@ -1,51 +1,44 @@
-# Dockerfile Corrigido para Frontend Backoffice
-# Build stage - Construir aplicação React/Vite
-FROM node:18-alpine as build
+# Multi-stage build para aplicação React/Vite
+FROM node:18-alpine as builder
 
 WORKDIR /app
 
 # Copiar arquivos de dependências
 COPY package*.json ./
-COPY pnpm-lock.yaml ./
 
-# Instalar pnpm e dependências
-RUN npm install -g pnpm
-RUN pnpm install --frozen-lockfile
+# Instalar dependências usando npm (consistente com o workflow)
+RUN npm ci --only=production
 
 # Copiar código fonte
 COPY . .
 
 # Build da aplicação
-RUN pnpm run build
+RUN npm run build
 
-# Production stage - Servir com nginx
+# Verificar se o diretório dist foi criado
+RUN ls -la /app/dist
+
+# Stage de produção com nginx
 FROM nginx:alpine
 
-# Remover arquivos padrão do nginx
-RUN rm -rf /usr/share/nginx/html/*
+# Remover configuração padrão do nginx
+RUN rm /etc/nginx/conf.d/default.conf
 
-# Copiar arquivos buildados (tentar múltiplos diretórios)
-COPY --from=build /app/dist /usr/share/nginx/html/ 2>/dev/null || true
-COPY --from=build /app/build /usr/share/nginx/html/ 2>/dev/null || true
+# Copiar arquivos buildados
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Configurar nginx para SPA (Single Page Application)
-RUN echo 'server { \
-    listen 80; \
-    server_name localhost; \
-    root /usr/share/nginx/html; \
-    index index.html; \
-    location / { \
-        try_files $uri $uri/ /index.html; \
-    } \
-    location /health { \
-        access_log off; \
-        return 200 "healthy\n"; \
-        add_header Content-Type text/plain; \
-    } \
-}' > /etc/nginx/conf.d/default.conf
+# Copiar configuração customizada do nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Criar usuário não-root para segurança
+RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 
 # Expor porta 80
 EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost/health || exit 1
 
 # Comando para iniciar nginx
 CMD ["nginx", "-g", "daemon off;"]
