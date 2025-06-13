@@ -1,5 +1,8 @@
 # React + TypeScript + Vite
 
+## 🚀 Deploy Automático Configurado
+Última atualização: 13/06/2025
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
