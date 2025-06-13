@@ -1,26 +1,52 @@
-# Railway Dockerfile
-FROM node:20.18.0-alpine
+# Dockerfile Corrigido para Frontend Backoffice
+# Build stage - Construir aplicação React/Vite
+FROM node:18-alpine as build
 
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm@9.15.9
+# Copiar arquivos de dependências
+COPY package*.json ./
+COPY pnpm-lock.yaml ./
 
-# Copy package files
-COPY package.json pnpm-lock.yaml ./
-
-# Install dependencies
+# Instalar pnpm e dependências
+RUN npm install -g pnpm
 RUN pnpm install --frozen-lockfile
 
-# Copy source code
+# Copiar código fonte
 COPY . .
 
-# Build the application
+# Build da aplicação
 RUN pnpm run build
 
-# Expose port
-EXPOSE 4173
+# Production stage - Servir com nginx
+FROM nginx:alpine
 
-# Start the application
-CMD ["pnpm", "run", "preview", "--host", "0.0.0.0", "--port", "4173"]
+# Remover arquivos padrão do nginx
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copiar arquivos buildados (tentar múltiplos diretórios)
+COPY --from=build /app/dist /usr/share/nginx/html/ 2>/dev/null || true
+COPY --from=build /app/build /usr/share/nginx/html/ 2>/dev/null || true
+
+# Configurar nginx para SPA (Single Page Application)
+RUN echo 'server { \
+    listen 80; \
+    server_name localhost; \
+    root /usr/share/nginx/html; \
+    index index.html; \
+    location / { \
+        try_files $uri $uri/ /index.html; \
+    } \
+    location /health { \
+        access_log off; \
+        return 200 "healthy\n"; \
+        add_header Content-Type text/plain; \
+    } \
+}' > /etc/nginx/conf.d/default.conf
+
+# Expor porta 80
+EXPOSE 80
+
+# Comando para iniciar nginx
+CMD ["nginx", "-g", "daemon off;"]
 
