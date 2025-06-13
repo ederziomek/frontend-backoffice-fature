@@ -39,7 +39,7 @@ jobs:
       run: npm run build
 
   deploy:
-    name: Deploy to EKS
+    name: Deploy to ECR
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
@@ -82,10 +82,12 @@ jobs:
         IMAGE_TAG: ${{ github.sha }}
       run: |
         # Build da imagem Docker
+        echo "🔨 Building Docker image..."
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
         
         # Push das imagens para ECR
+        echo "📤 Pushing images to ECR..."
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
         
@@ -93,65 +95,35 @@ jobs:
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
         echo "registry=$ECR_REGISTRY" >> $GITHUB_OUTPUT
         
-    - name: Update kubeconfig
+        echo "✅ Image successfully built and pushed to ECR!"
+        echo "📋 Image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+        echo "📋 Latest: $ECR_REGISTRY/$ECR_REPOSITORY:latest"
+        
+    - name: Verify ECR images
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
       run: |
-        aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER_NAME }}
+        echo "🔍 Verifying images in ECR..."
+        aws ecr describe-images --repository-name $ECR_REPOSITORY --region $AWS_REGION --image-ids imageTag=$IMAGE_TAG
+        aws ecr describe-images --repository-name $ECR_REPOSITORY --region $AWS_REGION --image-ids imageTag=latest
+        echo "✅ Images verified in ECR!"
         
-    - name: Verify cluster connection
+    - name: Deploy summary
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
       run: |
-        kubectl cluster-info
-        kubectl get nodes
-        
-    - name: Check if deployment exists
-      id: check-deployment
-      run: |
-        if kubectl get deployment ${{ env.DEPLOYMENT_NAME }} -n ${{ env.NAMESPACE }} >/dev/null 2>&1; then
-          echo "deployment-exists=true" >> $GITHUB_OUTPUT
-        else
-          echo "deployment-exists=false" >> $GITHUB_OUTPUT
-        fi
-        
-    - name: Create deployment if not exists
-      if: steps.check-deployment.outputs.deployment-exists == 'false'
-      run: |
-        kubectl create deployment ${{ env.DEPLOYMENT_NAME }} \
-          --image=${{ steps.build-image.outputs.image }} \
-          --namespace=${{ env.NAMESPACE }}
-        kubectl expose deployment ${{ env.DEPLOYMENT_NAME }} \
-          --port=80 --target-port=80 \
-          --namespace=${{ env.NAMESPACE }}
-        
-    - name: Update existing deployment
-      if: steps.check-deployment.outputs.deployment-exists == 'true'
-      run: |
-        kubectl set image deployment/${{ env.DEPLOYMENT_NAME }} \
-          ${{ env.DEPLOYMENT_NAME }}=${{ steps.build-image.outputs.image }} \
-          -n ${{ env.NAMESPACE }}
-        
-    - name: Wait for rollout to complete
-      run: |
-        kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} \
-          -n ${{ env.NAMESPACE }} --timeout=600s
-        
-    - name: Verify deployment health
-      run: |
-        # Verificar se os pods estão rodando
-        kubectl get pods -n ${{ env.NAMESPACE }} -l app=${{ env.DEPLOYMENT_NAME }}
-        
-        # Verificar se o serviço está respondendo
-        kubectl get service ${{ env.DEPLOYMENT_NAME }} -n ${{ env.NAMESPACE }}
-        
-        # Teste de conectividade (se possível)
-        POD_NAME=$(kubectl get pods -n ${{ env.NAMESPACE }} -l app=${{ env.DEPLOYMENT_NAME }} -o jsonpath="{.items[0].metadata.name}")
-        kubectl exec $POD_NAME -n ${{ env.NAMESPACE }} -- wget --spider http://localhost/health || echo "Health check failed, but deployment completed"
-        
-        echo "✅ Frontend Backoffice deployed successfully!"
-        
-    - name: Rollback on failure
-      if: failure()
-      run: |
-        echo "🔄 Rolling back deployment due to failure..."
-        kubectl rollout undo deployment/${{ env.DEPLOYMENT_NAME }} -n ${{ env.NAMESPACE }}
-        kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} -n ${{ env.NAMESPACE }} --timeout=300s
-        echo "❌ Deployment rolled back"
+        echo "🎉 DEPLOY COMPLETED SUCCESSFULLY!"
+        echo ""
+        echo "📦 Built and pushed Docker images:"
+        echo "   • $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+        echo "   • $ECR_REGISTRY/$ECR_REPOSITORY:latest"
+        echo ""
+        echo "🚀 Next steps (manual):"
+        echo "   1. Update EKS deployment to use new image"
+        echo "   2. Verify application is running correctly"
+        echo ""
+        echo "💡 To deploy to EKS manually:"
+        echo "   kubectl set image deployment/$DEPLOYMENT_NAME $DEPLOYMENT_NAME=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -n $NAMESPACE"
 
