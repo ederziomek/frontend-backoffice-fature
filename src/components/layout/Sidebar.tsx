@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, Users, UserSquare, Settings, DollarSign, FolderKanban, Shield, X } from 'lucide-react';
+import { LayoutDashboard, Users, UserSquare, Settings, DollarSign, FolderKanban, Shield, X, Monitor, Database, Brain } from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -88,6 +88,31 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       href: '/#/content',
       icon: <FolderKanban className="w-5 h-5 mr-3 text-azul-ciano" />,
       label: 'Marketing',
+      activeColor: 'text-branco',
+    },
+    // Novos itens de menu para os sistemas integrados
+    {
+      href: '/#/system-monitor',
+      icon: <Monitor className="w-5 h-5 mr-3 text-green-400" />,
+      label: 'Monitor Sistema',
+      activeColor: 'text-branco',
+    },
+    {
+      href: '/#/config-manager',
+      icon: <Database className="w-5 h-5 mr-3 text-blue-400" />,
+      label: 'Config Service',
+      activeColor: 'text-branco',
+    },
+    {
+      href: '/#/cpa-advanced',
+      icon: <Shield className="w-5 h-5 mr-3 text-orange-400" />,
+      label: 'CPA Avançado',
+      activeColor: 'text-branco',
+    },
+    {
+      href: '/#/gamification-ai',
+      icon: <Brain className="w-5 h-5 mr-3 text-purple-400" />,
+      label: 'Gamificação IA',
       activeColor: 'text-branco',
     },
   ];

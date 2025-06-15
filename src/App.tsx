@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useState } from 'react';
 import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
 import DashboardPage from './pages/DashboardPage';
@@ -13,6 +13,11 @@ import FinancialPage from './pages/financial/FinancialPage'; // Main page for fi
 import ContentPage from './pages/content/ContentPage'; // Import the new ContentPage
 import UserLogsPage from './pages/users/UserLogsPage'; // Import the UserLogsPage
 import SecurityPage from './pages/security/SecurityPage'; // Import the SecurityPage
+// Novos componentes integrados
+import SystemMonitorDashboard from './components/system/SystemMonitorDashboard';
+import ConfigurationManager from './components/config/ConfigurationManager';
+import CPAAdvancedDashboard from './components/cpa/CPAAdvancedDashboard';
+import GamificationAIDashboard from './components/gamification/GamificationAIDashboard';
 
 function App() {
   // Estado para controlar a visibilidade do sidebar em dispositivos móveis
@@ -50,6 +55,11 @@ function App() {
               <Route path="/financial/*" element={<FinancialPage />} /> {/* Catch-all for financial sub-routes */}
               <Route path="/security/*" element={<SecurityPage />} /> {/* Catch-all for security sub-routes */}
               <Route path="/content/*" element={<ContentPage />} /> {/* Add route for Content Management */}
+              {/* Novas rotas para os sistemas integrados */}
+              <Route path="/system-monitor" element={<SystemMonitorDashboard />} />
+              <Route path="/config-manager" element={<ConfigurationManager />} />
+              <Route path="/cpa-advanced" element={<CPAAdvancedDashboard />} />
+              <Route path="/gamification-ai" element={<GamificationAIDashboard />} />
               {/* Add other routes here as needed */}
             </Routes>
           </main>
