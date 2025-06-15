@@ -66,7 +66,7 @@ interface KPIData {
 
 interface ChartData {
   name: string;
-  value: number;
+  value?: number;
   revenue?: number;
   users?: number;
   conversions?: number;
