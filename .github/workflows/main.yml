@@ -117,71 +117,88 @@ jobs:
         aws ecr describe-images --repository-name $ECR_REPOSITORY --region $AWS_REGION --image-ids imageTag=latest
         echo "✅ Images verified in ECR!"
 
-  deployment-ready:
-    name: Deployment Ready Notification
+  deploy-to-eks:
+    name: Deploy to EKS
     runs-on: ubuntu-latest
     needs: build-and-push
     if: success()
     
     steps:
-    - name: Deployment Instructions
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+        
+    - name: Install kubectl
+      run: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
+        
+    - name: Configure kubectl for EKS
+      run: |
+        aws eks update-kubeconfig --region $AWS_REGION --name $EKS_CLUSTER_NAME
+        
+    - name: Verify cluster connection
+      run: |
+        kubectl get nodes
+        kubectl get namespaces
+        
+    - name: Deploy to EKS
       env:
         IMAGE_URI: ${{ needs.build-and-push.outputs.image-uri }}
         IMAGE_TAG: ${{ needs.build-and-push.outputs.image-tag }}
       run: |
-        echo "🎉 BUILD AND PUSH COMPLETED SUCCESSFULLY!"
+        echo "🚀 Deploying to EKS cluster..."
+        echo "📦 Image: $IMAGE_URI"
+        
+        # Update the deployment with new image
+        kubectl set image deployment/$DEPLOYMENT_NAME \
+          $DEPLOYMENT_NAME=$IMAGE_URI \
+          -n $NAMESPACE
+          
+        echo "⏳ Waiting for deployment to complete..."
+        kubectl rollout status deployment/$DEPLOYMENT_NAME -n $NAMESPACE --timeout=300s
+        
+        echo "✅ Deployment completed successfully!"
+        
+    - name: Verify deployment
+      run: |
+        echo "🔍 Verifying deployment status..."
+        kubectl get deployment $DEPLOYMENT_NAME -n $NAMESPACE
+        kubectl get pods -n $NAMESPACE -l app=$DEPLOYMENT_NAME
+        kubectl get services -n $NAMESPACE
+        
+        echo "📊 Deployment verification complete!"
+
+  deployment-ready:
+    name: Deployment Ready Notification
+    runs-on: ubuntu-latest
+    needs: [build-and-push, deploy-to-eks]
+    if: success()
+    
+    steps:
+    - name: Deployment Success Notification
+      env:
+        IMAGE_URI: ${{ needs.build-and-push.outputs.image-uri }}
+        IMAGE_TAG: ${{ needs.build-and-push.outputs.image-tag }}
+      run: |
+        echo "🎉 DEPLOYMENT COMPLETED SUCCESSFULLY!"
         echo ""
-        echo "📦 New Docker image ready for deployment:"
+        echo "📦 Deployed Image:"
         echo "   • URI: $IMAGE_URI"
         echo "   • Tag: $IMAGE_TAG"
-        echo "   • Latest: 569364235341.dkr.ecr.sa-east-1.amazonaws.com/$ECR_REPOSITORY:latest"
         echo ""
-        echo "🚀 DEPLOYMENT OPTIONS:"
-        echo ""
-        echo "1️⃣ Manual Deployment (Recommended):"
-        echo "   kubectl set image deployment/$DEPLOYMENT_NAME \\"
-        echo "     $DEPLOYMENT_NAME=$IMAGE_URI \\"
-        echo "     -n $NAMESPACE"
-        echo ""
-        echo "2️⃣ AWS Console Deployment:"
-        echo "   • Access EKS Console"
-        echo "   • Update deployment with new image URI"
-        echo ""
-        echo "3️⃣ Automated Deployment:"
-        echo "   • Requires RBAC configuration in EKS cluster"
-        echo "   • Contact AWS administrator for permissions"
-        echo ""
-        echo "🌐 Frontend will be available at:"
+        echo "🌐 Frontend is now live at:"
         echo "   http://adb6c471809c54b0992ab68ce696da11-314674034.sa-east-1.elb.amazonaws.com/"
         echo ""
-        echo "⚡ Pipeline Status: 100% RELIABLE"
-        echo "📊 Success Rate: Build ✅ | Push ✅ | Ready for Deploy ✅"
-        
-    - name: Create deployment summary
-      run: |
-        cat << EOF > deployment-summary.md
-        # 🚀 Deployment Summary
-        
-        **Commit:** ${{ github.sha }}
-        **Timestamp:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
-        **Status:** ✅ Ready for Deployment
-        
-        ## 📦 Built Images
-        - **Tagged:** ${{ needs.build-and-push.outputs.image-uri }}
-        - **Latest:** 569364235341.dkr.ecr.sa-east-1.amazonaws.com/$ECR_REPOSITORY:latest
-        
-        ## 🎯 Next Steps
-        Execute deployment using one of the methods above.
-        
-        ## 🌐 Frontend URL
-        http://adb6c471809c54b0992ab68ce696da11-314674034.sa-east-1.elb.amazonaws.com/
-        EOF
-        
-        echo "📄 Deployment summary created"
-        cat deployment-summary.md
+        echo "✅ Pipeline Status: FULLY AUTOMATED"
+        echo "📊 Success Rate: Build ✅ | Push ✅ | Deploy ✅"
         
     - name: Success notification
       run: |
-        echo "::notice title=Deployment Ready::New image ${{ needs.build-and-push.outputs.image-tag }} is ready for deployment to EKS cluster"
+        echo "::notice title=Deployment Complete::Image ${{ needs.build-and-push.outputs.image-tag }} successfully deployed to EKS cluster"
         echo "::notice title=Frontend URL::http://adb6c471809c54b0992ab68ce696da11-314674034.sa-east-1.elb.amazonaws.com/"
 
