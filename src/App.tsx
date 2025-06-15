@@ -18,6 +18,11 @@ import SystemMonitorDashboard from './components/system/SystemMonitorDashboard';
 import ConfigurationManager from './components/config/ConfigurationManager';
 import CPAAdvancedDashboard from './components/cpa/CPAAdvancedDashboard';
 import GamificationAIDashboard from './components/gamification/GamificationAIDashboard';
+import AdvancedConfigurationPanel from './components/config/AdvancedConfigurationPanel';
+import AdvancedGamificationManager from './components/gamification/AdvancedGamificationManager';
+import CompleteIntegrationDashboard from './components/integration/CompleteIntegrationDashboard';
+import ExecutiveDashboard from './components/dashboard/ExecutiveDashboard';
+import SecurityAuditCenter from './components/security/SecurityAuditCenter';
 
 function App() {
   // Estado para controlar a visibilidade do sidebar em dispositivos móveis
@@ -56,10 +61,11 @@ function App() {
               <Route path="/security/*" element={<SecurityPage />} /> {/* Catch-all for security sub-routes */}
               <Route path="/content/*" element={<ContentPage />} /> {/* Add route for Content Management */}
               {/* Novas rotas para os sistemas integrados */}
-              <Route path="/system-monitor" element={<SystemMonitorDashboard />} />
-              <Route path="/config-manager" element={<ConfigurationManager />} />
-              <Route path="/cpa-advanced" element={<CPAAdvancedDashboard />} />
-              <Route path="/gamification-ai" element={<GamificationAIDashboard />} />
+          <Route path="/advanced-config" element={<AdvancedConfigurationPanel />} />
+          <Route path="/advanced-gamification" element={<AdvancedGamificationManager />} />
+          <Route path="/complete-integration" element={<CompleteIntegrationDashboard />} />
+          <Route path="/executive-dashboard" element={<ExecutiveDashboard />} />
+          <Route path="/security-audit" element={<SecurityAuditCenter />} />
               {/* Add other routes here as needed */}
             </Routes>
           </main>

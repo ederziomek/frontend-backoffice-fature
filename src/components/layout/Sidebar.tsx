@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, Users, UserSquare, Settings, DollarSign, FolderKanban, Shield, X, Monitor, Database, Brain } from 'lucide-react';
+import { LayoutDashboard, Users, UserSquare, Settings, DollarSign, FolderKanban, Shield, X, Monitor, Database, Brain, BarChart3 } from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -92,27 +92,33 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     },
     // Novos itens de menu para os sistemas integrados
     {
-      href: '/#/system-monitor',
-      icon: <Monitor className="w-5 h-5 mr-3 text-green-400" />,
-      label: 'Monitor Sistema',
+      href: '/#/executive-dashboard',
+      icon: <BarChart3 className="w-5 h-5 mr-3 text-indigo-400" />,
+      label: 'Dashboard Executivo',
       activeColor: 'text-branco',
     },
     {
-      href: '/#/config-manager',
+      href: '/#/advanced-config',
       icon: <Database className="w-5 h-5 mr-3 text-blue-400" />,
-      label: 'Config Service',
+      label: 'Config Avançada',
       activeColor: 'text-branco',
     },
     {
-      href: '/#/cpa-advanced',
-      icon: <Shield className="w-5 h-5 mr-3 text-orange-400" />,
-      label: 'CPA Avançado',
+      href: '/#/complete-integration',
+      icon: <Monitor className="w-5 h-5 mr-3 text-green-400" />,
+      label: 'Integração Completa',
       activeColor: 'text-branco',
     },
     {
-      href: '/#/gamification-ai',
+      href: '/#/advanced-gamification',
       icon: <Brain className="w-5 h-5 mr-3 text-purple-400" />,
       label: 'Gamificação IA',
+      activeColor: 'text-branco',
+    },
+    {
+      href: '/#/security-audit',
+      icon: <Shield className="w-5 h-5 mr-3 text-red-400" />,
+      label: 'Segurança & Auditoria',
       activeColor: 'text-branco',
     },
   ];
