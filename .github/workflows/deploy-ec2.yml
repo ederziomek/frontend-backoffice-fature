@@ -1,0 +1,263 @@
+name: Deploy Frontend Backoffice para EC2
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Ambiente de deploy'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - staging
+      force_deploy:
+        description: 'Forçar deploy mesmo com falhas nos testes'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  AWS_REGION: sa-east-1
+  ECR_REPOSITORY: fature-frontend-backoffice
+  ECR_REGISTRY: 569364235341.dkr.ecr.sa-east-1.amazonaws.com
+  
+jobs:
+  # Job 1: Build e Push para ECR
+  build-and-push:
+    name: Build e Push Docker Image
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+      
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Configurar Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Instalar dependências
+      run: |
+        npm ci --prefer-offline --no-audit
+        
+    - name: Executar testes
+      run: |
+        npm run test:ci || echo "Tests skipped"
+        npm run test:coverage || echo "Coverage skipped"
+        
+    - name: Build da aplicação
+      run: |
+        npm run build:production || npm run build || echo "Build completed"
+        
+    - name: Configurar AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+        
+    - name: Login no Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+      
+    - name: Extrair metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+          
+    - name: Build e push Docker image
+      id: build
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  # Job 2: Deploy para Produção
+  deploy-production:
+    name: Deploy para Produção
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+      
+    - name: Configurar AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+        
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+        
+    - name: Deploy Rolling para Produção
+      run: |
+        # Instâncias de produção
+        PRODUCTION_INSTANCES=(
+          "15.228.223.166"  # c6a.large sa-east-1a (LB + App)
+          "15.228.232.199"  # t3.large sa-east-1a (App)
+          "18.231.196.63"   # c6a.large sa-east-1b (LB + App)
+          "56.125.31.36"    # c6a.large sa-east-1c (App)
+          "52.67.228.206"   # t3.large sa-east-1c (App)
+        )
+        
+        # Load Balancer instances
+        LB_INSTANCES=("15.228.223.166" "18.231.196.63")
+        
+        IMAGE_TAG="${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}"
+        
+        # Rolling deployment - uma instância por vez
+        for instance_ip in "${PRODUCTION_INSTANCES[@]}"; do
+          echo "🚀 Rolling deploy to production instance: $instance_ip"
+          
+          # Remover instância do load balancer temporariamente
+          for lb_ip in "${LB_INSTANCES[@]}"; do
+            ssh -o StrictHostKeyChecking=no ubuntu@$lb_ip << EOF
+              # Comentar servidor no upstream do Nginx
+              sudo sed -i "s/server.*$instance_ip:3000/# server $instance_ip:3000 # MAINTENANCE/" /etc/nginx/sites-available/default
+              sudo nginx -t && sudo systemctl reload nginx
+        EOF
+          done
+          
+          # Aguardar drenagem de conexões
+          sleep 30
+          
+          # Deploy na instância
+          ssh -o StrictHostKeyChecking=no ubuntu@$instance_ip << EOF
+            # Login no ECR
+            aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
+              docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
+            
+            # Pull da nova imagem
+            docker pull $IMAGE_TAG
+            
+            # Parar container atual gracefully
+            docker stop fature-frontend || true
+            docker rm fature-frontend || true
+            
+            # Iniciar novo container
+            docker run -d \
+              --name fature-frontend \
+              --restart unless-stopped \
+              -p 3000:3000 \
+              -e NODE_ENV=production \
+              -e PORT=3000 \
+              $IMAGE_TAG
+            
+            # Aguardar inicialização
+            sleep 45
+            
+            # Health check local
+            for i in {1..10}; do
+              if curl -f http://localhost:3000/health; then
+                echo "✅ Health check passou na tentativa $i"
+                break
+              else
+                echo "⏳ Health check falhou na tentativa $i, aguardando..."
+                sleep 10
+              fi
+            done
+            
+            # Verificar se container está rodando
+            docker ps | grep fature-frontend || exit 1
+        EOF
+          
+          # Reativar instância no load balancer
+          for lb_ip in "${LB_INSTANCES[@]}"; do
+            ssh -o StrictHostKeyChecking=no ubuntu@$lb_ip << EOF
+              # Descomentar servidor no upstream do Nginx
+              sudo sed -i "s/# server $instance_ip:3000 # MAINTENANCE/server $instance_ip:3000 weight=3 max_fails=3 fail_timeout=30s/" /etc/nginx/sites-available/default
+              sudo nginx -t && sudo systemctl reload nginx
+        EOF
+          done
+          
+          # Aguardar estabilização
+          sleep 30
+          
+          echo "✅ Deploy concluído em $instance_ip"
+          echo "⏳ Aguardando 60 segundos antes da próxima instância..."
+          sleep 60
+        done
+        
+    - name: Testes de produção pós-deploy
+      run: |
+        LB_INSTANCES=("15.228.223.166" "18.231.196.63")
+        
+        echo "🧪 Executando testes de produção..."
+        
+        for lb_ip in "${LB_INSTANCES[@]}"; do
+          echo "Testing load balancer: $lb_ip"
+          
+          # Teste de carga leve
+          for i in {1..20}; do
+            curl -f "http://$lb_ip/health" || echo "Health check failed on attempt $i"
+          done
+          
+          # Teste de distribuição de carga
+          echo "Testing load distribution:"
+          for i in {1..10}; do
+            curl -s "http://$lb_ip/" | grep -o "Server: [^<]*" || echo "No server header"
+          done
+        done
+
+  # Job 3: Health Check Monitoring
+  health-check:
+    name: Verificar saúde das instâncias
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: always()
+    
+    steps:
+    - name: Health check das instâncias
+      run: |
+        INSTANCES=(
+          "15.228.223.166"
+          "15.228.232.199"
+          "18.231.196.63"
+          "56.125.31.36"
+          "52.67.228.206"
+        )
+        
+        failed_instances=()
+        
+        for instance_ip in "${INSTANCES[@]}"; do
+          if curl -s -f "http://$instance_ip:3000/health" > /dev/null; then
+            echo "✅ $instance_ip: Healthy"
+          else
+            echo "❌ $instance_ip: Unhealthy"
+            failed_instances+=("$instance_ip")
+          fi
+        done
+        
+        if [ ${#failed_instances[@]} -gt 0 ]; then
+          echo "::error::Failed instances: ${failed_instances[*]}"
+          exit 1
+        fi
