@@ -23,6 +23,9 @@ COPY . .
 # Build da aplicação
 RUN npm run build || echo "Build completed"
 
+# Criar pastas que podem ser necessárias
+RUN mkdir -p dist build public
+
 # Estágio de produção
 FROM node:18-alpine AS production
 
@@ -37,11 +40,14 @@ RUN addgroup -g 1001 -S nodejs && \
 WORKDIR /app
 
 # Copiar arquivos necessários do builder
-COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist || echo "No dist folder"
-COPY --from=builder --chown=nextjs:nodejs /app/build ./build || echo "No build folder"
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public || echo "No public folder"
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/server.js ./server.js
+
+# Copiar pastas (agora garantidas de existir)
+COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
+COPY --from=builder --chown=nextjs:nodejs /app/build ./build
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 # Mudar para usuário não-root
 USER nextjs
