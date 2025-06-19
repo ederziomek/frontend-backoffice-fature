@@ -86,9 +86,26 @@ app.get('/api/affiliates', async (req, res) => {
     }
 });
 
+app.get('/api/bets', async (req, res) => {
+    try {
+        const response = await axios.get(`${REAL_DATA_SERVICE_URL}/data/v2/bets`, {
+            params: req.query,
+            timeout: 10000
+        });
+        res.json(response.data);
+    } catch (error) {
+        console.error('Erro ao buscar apostas:', error.message);
+        res.status(500).json({
+            error: 'Erro ao buscar dados de apostas',
+            message: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 app.get('/api/commissions', async (req, res) => {
     try {
-        const response = await axios.get(`${REAL_DATA_SERVICE_URL}/data/v2/commissions`, {
+        const response = await axios.get(`${REAL_DATA_SERVICE_URL}/data/v2/affiliates`, {
             params: req.query,
             timeout: 10000
         });
@@ -247,6 +264,12 @@ app.get('/', (req, res) => {
                         <h4>💳 Transações</h4>
                         <button class="btn" onclick="testEndpoint('/api/transactions', 'transactions-result')">Buscar Transações</button>
                         <div id="transactions-result"></div>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>🎰 Apostas</h4>
+                        <button class="btn" onclick="testEndpoint('/api/bets', 'bets-result')">Buscar Apostas</button>
+                        <div id="bets-result"></div>
                     </div>
                     
                     <div class="card">
