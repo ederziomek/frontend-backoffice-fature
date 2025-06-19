@@ -1,35 +1,7 @@
-# Dockerfile otimizado para produção
-FROM node:18-alpine AS builder
+# Dockerfile simplificado para produção
+FROM node:18-alpine
 
-# Instalar dependências do sistema
-RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    curl
-
-# Definir diretório de trabalho
-WORKDIR /app
-
-# Copiar arquivos de dependências
-COPY package*.json ./
-
-# Instalar dependências
-RUN npm ci --only=production --prefer-offline --no-audit
-
-# Copiar código fonte
-COPY . .
-
-# Build da aplicação
-RUN npm run build || echo "Build completed"
-
-# Criar pastas que podem ser necessárias
-RUN mkdir -p dist build public
-
-# Estágio de produção
-FROM node:18-alpine AS production
-
-# Instalar curl para health checks
+# Instalar dependências do sistema necessárias
 RUN apk add --no-cache curl
 
 # Criar usuário não-root
@@ -39,15 +11,20 @@ RUN addgroup -g 1001 -S nodejs && \
 # Definir diretório de trabalho
 WORKDIR /app
 
-# Copiar arquivos necessários do builder
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
-COPY --from=builder --chown=nextjs:nodejs /app/server.js ./server.js
+# Copiar arquivos de dependências primeiro (para cache)
+COPY package*.json ./
 
-# Copiar pastas (agora garantidas de existir)
-COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
-COPY --from=builder --chown=nextjs:nodejs /app/build ./build
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+# Instalar dependências como root
+RUN npm install --production --no-audit
+
+# Copiar código fonte
+COPY . .
+
+# Criar pastas necessárias
+RUN mkdir -p dist build public
+
+# Mudar ownership para usuário não-root
+RUN chown -R nextjs:nodejs /app
 
 # Mudar para usuário não-root
 USER nextjs
@@ -61,3 +38,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 
 # Comando de inicialização
 CMD ["npm", "start"]
+

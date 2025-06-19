@@ -2,23 +2,24 @@
   "name": "fature-frontend-backoffice",
   "version": "1.0.0",
   "description": "Frontend Backoffice do Projeto Fature",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node server.js || node index.js || npm run serve",
-    "build": "echo 'Build completed'",
-    "build:production": "echo 'Production build completed'",
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build": "echo 'Build completed - no build step required'",
     "test": "echo 'Tests passed'",
-    "test:ci": "echo 'CI tests passed'",
-    "test:coverage": "echo 'Coverage completed'",
-    "serve": "npx http-server -p 3000 -a 0.0.0.0"
+    "serve": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.0",
-    "axios": "^1.6.0",
-    "http-server": "^14.1.0"
+    "express": "^4.18.2",
+    "axios": "^1.6.0"
   },
-  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
   "keywords": ["fature", "frontend", "backoffice"],
   "author": "Manus AI",
   "license": "MIT"
 }
+
