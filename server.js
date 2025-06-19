@@ -40,7 +40,7 @@ app.get('/api/users', async (req, res) => {
     try {
         const response = await axios.get(`${REAL_DATA_SERVICE_URL}/data/v2/users`, {
             params: req.query,
-            timeout: 10000
+            timeout: 30000
         });
         res.json(response.data);
     } catch (error) {
@@ -56,7 +56,7 @@ app.get('/api/users', async (req, res) => {
 app.get('/api/stats', async (req, res) => {
     try {
         const response = await axios.get(`${REAL_DATA_SERVICE_URL}/data/v2/stats`, {
-            timeout: 10000
+            timeout: 30000
         });
         res.json(response.data);
     } catch (error) {
@@ -73,7 +73,7 @@ app.get('/api/affiliates', async (req, res) => {
     try {
         const response = await axios.get(`${REAL_DATA_SERVICE_URL}/data/v2/affiliates`, {
             params: req.query,
-            timeout: 10000
+            timeout: 30000
         });
         res.json(response.data);
     } catch (error) {
@@ -90,7 +90,7 @@ app.get('/api/bets', async (req, res) => {
     try {
         const response = await axios.get(`${REAL_DATA_SERVICE_URL}/data/v2/bets`, {
             params: req.query,
-            timeout: 10000
+            timeout: 30000
         });
         res.json(response.data);
     } catch (error) {
@@ -107,7 +107,7 @@ app.get('/api/commissions', async (req, res) => {
     try {
         const response = await axios.get(`${REAL_DATA_SERVICE_URL}/data/v2/affiliates`, {
             params: req.query,
-            timeout: 10000
+            timeout: 30000
         });
         res.json(response.data);
     } catch (error) {
@@ -124,7 +124,7 @@ app.get('/api/transactions', async (req, res) => {
     try {
         const response = await axios.get(`${REAL_DATA_SERVICE_URL}/data/v2/transactions`, {
             params: req.query,
-            timeout: 10000
+            timeout: 30000
         });
         res.json(response.data);
     } catch (error) {
@@ -140,7 +140,7 @@ app.get('/api/transactions', async (req, res) => {
 app.get('/api/real-data-health', async (req, res) => {
     try {
         const response = await axios.get(`${REAL_DATA_SERVICE_URL}/health`, {
-            timeout: 5000
+            timeout: 15000
         });
         res.json({
             status: 'connected',
@@ -161,7 +161,7 @@ app.get('/api/real-data-health', async (req, res) => {
 app.post('/api/sync', async (req, res) => {
     try {
         const response = await axios.post(`${REAL_DATA_SERVICE_URL}/sync/v2`, {}, {
-            timeout: 30000
+            timeout: 60000
         });
         res.json({
             status: 'success',
